@@ -10,7 +10,7 @@ img {
 }
 
 body {
-    background: url(assets/background.jpg) repeat;
+    background: url(/images/background.jpg) repeat;
     font-family: Helvetica, Arial, sans-serif;
     font-size: 10pt;
 }
