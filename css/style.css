@@ -1,0 +1,31 @@
+﻿#debug {
+    background-color: #efe;
+    color: #ff0000;
+    display: block;
+}
+
+img {
+    max-height: 200px;
+    width: auto;
+}
+
+body {
+    background: url(assets/background.jpg) repeat;
+    font-family: Helvetica, Arial, sans-serif;
+    font-size: 10pt;
+}
+
+a {
+    font-style:italic;
+    margin-left: 10px;
+    padding-top: 5px;
+}
+
+code {
+    font-family: 'Courier New', Courier, monospace;
+    margin-left: 10px;
+}
+
+b > a, i > a, code > a {
+    margin-left: 0px;
+}
