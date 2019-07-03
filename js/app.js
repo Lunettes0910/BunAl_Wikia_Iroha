@@ -1,7 +1,52 @@
-﻿var out = document.getElementById("out");
+﻿/** This class holds and compares data related to a writer's stats when blossoming them.
+ * @version 1.0.1
+ * @since July 3, 2019
+ */
+class writerBlossoming {
+    /** An array holding all pseudo-stats of a writer */
+    pseudoStats = [0, 0, 0, 0, 0];
+
+    constructor(id, atk, def, evade, tech, tal, aes, thm, rl) {
+
+        this.id = id;
+        this.atk = atk;
+        this.def = def;
+        this.evade = evade;
+        this.pseudoStats = [tech, tal, aes, thm, rl];
+    }
+
+    updateMainStats(newAtk, newDef, newEvade) {
+        this.atk = newAtk;
+        this.def = newDef;
+        this.evade = newEvade;
+    }
+
+    comparePStats(newPStat, pStatNumber) {
+        return newPStat - this.pseudoStats[pStatNumber];
+    }
+}
+
+/* ---------------------------------- CONSTANTS --------------------------------- */
+
+/** Default in-delve VC count for writers with no ring */
+const DELVE_DEFAULT_VC_COUNT = 23;
+
+/** Number of pseudo-stats */
+const PSEUDO_STAT_COUNT = 5;
+
+/* ----------------------------- GLOBAL DATA MEMBERS ---------------------------- */
+
+/** HTML output */
+var out = document.getElementById("out");
+
+/** Output placeholder to the panel */
 var o = "";
 
+/** Writers' deck placeholder for in-delve checks */
 var writers = ["", "", "", ""];
+
+/** A single stat placeholder for writer blossoming */
+var writerKaika = new writerBlossoming(0, 0, 0, 0, 0, 0, 0, 0, 0);
 
 /* ----------------------- UI IMPLEMENTATION AND DISPLAYS -----------------------
  * 
@@ -22,6 +67,7 @@ var writers = ["", "", "", ""];
  *      - Letters: letters()
  *      - Strolls: strollsVoice(), strollsReply()
  *      - Memorias: memoria(), reportMemorias()
+ *      - Payday: salary()
  *      - Rings: ringMemoria(), ringRegister()
  */
 
@@ -40,7 +86,7 @@ function (request) {
     if (endpt !== null) {
         switch (endpt[1]) {
             /* Immediate VC requests for Dining Hall and assistant change */
-            case "/units/supply":
+            case "units/supply":
             case "assistant_change":
                 request.getContent(voiceImmediate);
                 break;
@@ -58,6 +104,11 @@ function (request) {
             /* Request for opening letters */
             case "letters/open":
                 request.getContent(letters);
+                break;
+
+            /* Monthly payday */
+            case "mypage/salary":
+                request.getContent(salary);
                 break;
 
             /* Other requests with inconsistent URLs */
@@ -83,7 +134,13 @@ function (request) {
                         request.getContent(ensouledDelveVoice);         /* Ensouled Book Delve start & summoned */
                 }
                 else if (endpt[1].includes("skill_tree")) {             /* Blossoming */
+                    if (endpt[1].includes("page/skill_tree"))
+                        writerKaika = new writerBlossoming(0, 0, 0, 0, 0, 0, 0, 0, 0);
+
                     request.getContent(skillTree);
+                }
+                else if (endpt[1].includes("list")) {                   /* Memoria from other reports */
+                    request.getContent(reportMemorias);
                 }
                 else if (endpt[1].includes("repair_docks/")             /* Repairs */
                         ||endpt[1].includes("change")) {                /* Formation */
@@ -115,9 +172,6 @@ function (request) {
                 else if (endpt[1].includes("cards/")) {                 /* Memoria info */
                     request.getContent(memoria)
                 }
-                else if (endpt[1].includes("list")) {                   /* Memoria from other reports */
-                    request.getContent(reportMemorias);
-                }
                 else if (endpt[1].includes("rings/")                    /* Ring in Memoria Index */
                         && !(endpt[1].includes("page/"))) {
                     request.getContent(ringMemoria);
@@ -132,8 +186,8 @@ function (request) {
 
 /** This function grabs voice clip found upon login to the game.
   * + Return immediately if an empty duplicate request encountered
-  * @version 1.0.1
-  * @since N/A
+  * @version 1.0.2
+  * @since July 2, 2019
   * @param {*} content The content found in the requesting URL
   * @returns N/A
   */
@@ -144,7 +198,7 @@ function login(content) {
         return;
 
     /* Grab the login VC */
-    o += br(llink("http://cdn.bungo.dmmgames.com" + json.voice, "<br/>Login voice"));
+    o += br(llink("http://cdn.bungo.dmmgames.com" + json.voice, "Login voice"));
     out.innerHTML = o;
 }
 
@@ -259,8 +313,8 @@ function voiceImmediate(content) {
   * + Print the Tainted Book's name
   * + Check for voice paths for recollections at the start of the delve
   * + Store the delving writers to a global array
-  * + Display all sprites and VCs found from delving writers
-  * @version 1.1
+  * + Display all sprites and VCs from new writers and new materials from ring-equipped writers
+  * @version 1.2
   * @since June 17, 2019
   * @param {*} content The content found in the requesting URL
   * @returns N/A
@@ -273,7 +327,7 @@ function start(content) {
         return;
 
     /* Tainted Book's name */
-    o += b("Tainted Book: " + bookTranslate(json.stage.name));
+    o += b("Tainted Book:<br/><i>" + bookTranslate(json.stage.name) + "</i>");
 
     /* Check for voice paths and prints recollection lines if found */
     if (json.adv != null && json.adv.length != 0) {
@@ -318,21 +372,34 @@ function start(content) {
             continue;
 
         writer_name = nameTranslate(unit.master.name);
-        o += "<hr>\n" + p(unit.mst_unit_id + " " + writer_name);
 
-        writer_name = writer_name.replace(/ /g, "_");
+        if (unit.master.name !== writer_name) {
+            if (unit.voices.length > DELVE_DEFAULT_VC_COUNT) {
+                o += "<hr>\n" + p(unit.mst_unit_id + " " + writer_name + " (" + weaponTranslate(unit.category) + ")" );
+
+                o += b("Writer sprites: ");
+                o += br(llink("http://cdn.bungo.dmmgames.com" + unit.images[1].path, writer_name + "_bookdelve_(ring).png"));
+                o += br(llink("http://cdn.bungo.dmmgames.com" + unit.icons[3].path, writer_name + "_bookdelve_(ring)_prev.png"));
+
+                o += b("Battle VCs: ");
+                o += br(llink("http://cdn.bungo.dmmgames.com" + unit.voices[23].path, writer_name + "_tainted_attackring"));
+            }
+        } else {
+            o += "<hr>\n" + p(unit.mst_unit_id + " " + writer_name);
+            writer_name = writer_name.replace(/ /g, "_");
+
+            o += b("Writer sprites: ");
+            o += br(llink("http://cdn.bungo.dmmgames.com" + unit.images[0].path, writer_name + "_normal.png"));
+            o += br(llink("http://cdn.bungo.dmmgames.com" + unit.images[1].path, writer_name + "_bookdelve.png"));
+            o += br(llink("http://cdn.bungo.dmmgames.com" + unit.images[2].path, writer_name + "_weakened.png"));
+            o += b("Battle VCs: ");
+            for (var item of unit.voices) {
+                o += br(llink("http://cdn.bungo.dmmgames.com" + item.path, convertVoiceNum(item.asset_no)));
+            }
+        }
 
         /* Store their names to other book delve functions */
-        writers[writer_order++] = writer_name;
-
-        o += b("Writer sprites: ");
-        o += br(llink("http://cdn.bungo.dmmgames.com" + unit.images[0].path, writer_name + "_normal.png"));
-        o += br(llink("http://cdn.bungo.dmmgames.com" + unit.images[1].path, writer_name + "_bookdelve.png"));
-        o += br(llink("http://cdn.bungo.dmmgames.com" + unit.images[2].path, writer_name + "_weakened.png"));
-        o += b("Battle VCs: ");
-        for (var item of unit.voices) {
-            o += br(llink("http://cdn.bungo.dmmgames.com" + item.path, convertVoiceNum(item.asset_no)));
-        }
+        writers[writer_order++] = writer_name.replace(/ /g, "_");
     }
 
     out.innerHTML = o;
@@ -436,7 +503,7 @@ function result(content) {
     json = JSON.parse(content);
 
     /* Check for hints shown in the result panel */
-    if (json.hint != null) {
+    if (json.hint !== null) {
         o += b("Hint:");
         o += "\n<dt>" + json.stage.name + "</dt>";
         o += "\n<dd>" + json.hint + "</dd>";
@@ -533,31 +600,84 @@ function ensouledTransmigratedVoice(unitContent, hasMaterial) {
     return summoned_writer_info;
 }
 
-/** This function grabs the VCs of the blossoming writer.
+/** This function grabs the data of the blossoming writer.
   * + Return immediately if an empty duplicate request encountered
-  * + If not, parse the writer's name
-  * + Display all VCs found with the writer's name added in accordingly
-  * @version 1.1
-  * @since June 17, 2019
+  * + If the blossoming page was newly opened, grab the writer's blossoming VCs
+  * + If the request was made while unlocking a node, show the stat change from said node
+  * @version 2.0
+  * @since July 3, 2019
   * @param {*} content The content found in the requesting URL
-  * @returns VCs found while blossoming the writer, or none if the grabbed content is empty
+  * @returns N/A
   */
 function skillTree(content) {
     json = JSON.parse(content);
 
     if (json.unit == null)
-        return; 
-    
-    o += b("Skill Tree: ");
+        return;
 
-    /* Parse the blossoming writer's name */
-    var writer_name = nameTranslate(json.unit.master.name);
-    writer_name = writer_name.replace(/ /g, "_");
+    if (writerKaika.id == 0) {
+        /* Get the writer's ID and stats */
+        writerKaika = new writerBlossoming(json.unit.master.id, json.unit.atk, json.unit.def, json.unit.avd, json.unit.base_tech, json.unit.base_genius, json.unit.base_beauty, json.unit.base_theme, json.unit.base_truth);
 
-    /* Grab VCs found in the writer's blossoming page */
-    for (var voices of json.unit.voices)
-        o += br(llink("http://cdn.bungo.dmmgames.com" + voices.path, writer_name + "_" + convertVoiceNum(voices.asset_no)));
-    
+        o += b("Blossoming VCs:");
+
+        /* Parse the blossoming writer's name */
+        var writer_name = nameTranslate(json.unit.master.name);
+        writer_name = writer_name.replace(/ /g, "_");
+
+        /* Grab VCs found in the writer's blossoming page */
+        for (var voices of json.unit.voices)
+            o += br(llink("http://cdn.bungo.dmmgames.com" + voices.path, writer_name + "_" + convertVoiceNum(voices.asset_no)));
+    } else {
+        /** Placeholder for pseudo-stat increasing nodes */
+        var statChange = 0;
+
+        /** Placeholder for new pseudo-stat */
+        var newPStats = [json.unit.base_tech, json.unit.base_genius, json.unit.base_beauty, json.unit.base_theme, json.unit.base_truth];
+
+        /** Placeholder for pseudo-stat number */
+        var pStatNum = 0;
+
+        /** Look for the correct stat change */
+        for (i = 0; i < PSEUDO_STAT_COUNT; i++) {
+            statChange = writerKaika.comparePStats(newPStats[i], i);
+            if (statChange == 0)
+                pStatNum++;
+            else
+                break;
+        }
+
+        /** Only show stat change if the unlocked node is a stat node */
+        if (statChange > 0) {
+            o += b("Stats change:");
+
+            switch (pStatNum) {
+                case 0:
+                    o += "<br/><b><i>TECH + ";
+                    break;
+                case 1:
+                    o += "<br/><b><i>TAL + ";
+                    break;
+                case 2:
+                    o += "<br/><b><i>AES + ";
+                    break;
+                case 3:
+                    o += "<br/><b><i>THM + ";
+                    break;
+                case 4:
+                    o += "<br/><b><i>RL + ";
+                    break;
+            }
+
+            o += statChange + "</i></b>";
+
+            o += "<br/><code>| " + (((json.unit.atk - writerKaika.atk) == 0) ? "" : (json.unit.atk - writerKaika.atk)) + " || " + (((json.unit.def - writerKaika.def) == 0) ? "" : (json.unit.def - writerKaika.def)) + " || " + (((json.unit.avd - writerKaika.evade) == 0) ? "" : (json.unit.avd - writerKaika.evade)) + "</code>";
+
+            /* Update the writer's kaika before processing a new blossoming */
+            writerKaika.updateMainStats(json.unit.atk, json.unit.def, json.unit.avd, json.unit.base_tech, json.unit.base_genius, json.unit.base_beauty, json.unit.base_theme, json.unit.base_truth);
+        }
+    }
+
     out.innerHTML = o;
 }
 
@@ -1017,6 +1137,28 @@ function reportMemorias(content) {
     out.innerHTML = o;
 }
 
+/** This function grabs the Chief's VC in paydays.
+  * + Parse the month and display a link to the VC
+  * @version 1.0
+  * @since July 2, 2019
+  * @param {*} content The content found in the requesting URL
+  * @returns N/A
+  */
+function salary(content) {
+    json = JSON.parse(content);
+
+    if (json.popup == null)
+        return;
+
+    /* Parse the month */
+    o += b(monthTranslate(json.month) + " Payday:");
+
+    /* Grab the login VC */
+    o += br(llink("http://cdn.bungo.dmmgames.com" + json.popup.voice_path, "Chief Librarian's VC"));
+    out.innerHTML = o;
+
+}
+
 /** This function displays data of a ring as found in the Memoria Index.
   * + Return immediately if duplicated request encountered
   * + Otherwise, continue grabbing the ring owner's name and ID
@@ -1468,7 +1610,7 @@ function nameTranslate(name) {
             break;
         case "高浜虚子":
         case 74:
-            return "Takahama Kiyoshi";
+            return "Takahama Kyoshi";
             break;
         case "河東碧梧桐":
         case 75:
@@ -2087,14 +2229,24 @@ function eventItemTranslate(jpName) {
             return "Coffee";
             break;
 
+        /* Co-Research series */
+        case "金貨":
+            return "Coins";
+            break;
+
+        /* Coup de Main events */
+        case "歪な歯車":
+            return "Distorted Gears";
+            break;
+
+        /* Coup de Main events - Foreign books */
+        case "封じの歯車":
+            return "Sealed Gears";
+            break;
+
         /* Mad Banquet series */
         case "アミュレット":
             return "Amulets";
-            break;
-
-        /* Purify "Alice's Adventures in Wonderland" */
-        case "封じの歯車":
-            return "Sealed Gears";
             break;
     }
 
@@ -2111,7 +2263,7 @@ function eventItemTranslate(jpName) {
   * @since June 19, 2019
   * @param {string} jpName The item's Japanese name
   * @returns {string} The item's translated name (if found), or its Japanese name unchanged
-  * @todo Compile a list of all Iroha-shelved books
+  * @todo Figure out how to translate books from Sealed Library
   */
 function bookTranslate(jpName) {
      switch (jpName) {
@@ -2269,7 +2421,7 @@ function bookTranslate(jpName) {
             return "TO-4 - The Dancing Girl of Izu"
             break;
 
-        /* CHI-series*/
+        /* CHI-series */
         case "ドグラ・マグラ":
             return "CHI-1 - Dogra Magra";
             break;
@@ -2285,4 +2437,56 @@ function bookTranslate(jpName) {
      * Hence, return the original JP name.
      */
     return jpName;
- }
+}
+
+/** This function converts the number of a month into its name.
+  * @version 1.0
+  * @since July 2, 2019
+  * @param {int} num The month's supposed month number
+  * @returns {string} The month's name, or a placeholder underscore if the number is invalid
+  */
+function monthTranslate(num) {
+    switch (num) {
+        case 1:
+            return "January";
+            break;
+        case 2:
+            return "February";
+            break;
+        case 3:
+            return "March";
+            break;
+        case 4:
+            return "April";
+            break;
+        case 5:
+            return "May";
+            break;
+        case 6:
+            return "June";
+            break;
+        case 7:
+            return "July";
+            break;
+        case 8:
+            return "August";
+            break;
+        case 9:
+            return "September";
+            break;
+        case 10:
+            return "October";
+            break;
+        case 11:
+            return "November";
+            break;
+        case 12:
+            return "December";
+            break;
+    }
+
+    /* At this point, the number was not recognized.
+     * Hence, return a placeholder underscore.
+     */
+    return "_";
+}

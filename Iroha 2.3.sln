@@ -7,7 +7,14 @@ Project("{262852C6-CD72-467D-83FE-5EEB1973A190}") = "Iroha 2.3", "Iroha 2.3.jspr
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{567FD7EB-7AF6-4FC4-B191-6AAF6839CC2B}"
 	ProjectSection(SolutionItems) = preProject
-		.[Released] Iroha 2.2.1.zip = .[Released] Iroha 2.2.1.zip
+		README.md = README.md
+		Update log.txt = Update log.txt
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Released", "Released", "{B7C515BD-1377-46CC-AA06-624A33E4DCCC}"
+	ProjectSection(SolutionItems) = preProject
+		[Released]\Iroha 2.2.1.zip = [Released]\Iroha 2.2.1.zip
+		[Released]\Iroha 2.3.zip = [Released]\Iroha 2.3.zip
 	EndProjectSection
 EndProject
 Global
@@ -57,6 +64,9 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{B7C515BD-1377-46CC-AA06-624A33E4DCCC} = {567FD7EB-7AF6-4FC4-B191-6AAF6839CC2B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A31C3909-F79E-42D5-8C67-435E68A2649D}

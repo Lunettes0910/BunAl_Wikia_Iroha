@@ -10,17 +10,18 @@
 
 * ***Bugs:***
     - [X] Memoria: Non-writer characters featured in memoria cards are displayed with untranslated names
+    - [ ] Blossoming: Unlocked node names might show up incorrectly 
 
 ## About
-* ***Latest released version:*** 2.2.1
-* ***Testing version:*** 2.3
+* ***Latest released version:*** 2.3
+* ***Testing version:*** 2.3.1
 
 This project is a small extension used to collect materials and data from the Japanese browser game *Bungo to Alchemist* (lit. *Writers and Alchemists*). The plugin was written to support the maintenance and update of [the game's Wikia](https://bungo.fandom.com) and has been passed down among the Wikia's staff.
 
 Originally, the extension was first written by the OP [Sen](https://bungo.fandom.com/User:Senelio) and developed further by [Chocs](https://bungo.fandom.com) to version 1.7 (aka *Irochoco 7*).
 
 ## How to Install
-* Download the `.zip` file marked as `.[Released]` in the repository
+* Download the latest version's `.zip` file in the repository's "Released" folder
 * Unzip the folder to any location of your convenience
 
 * ***For Google Chrome:***

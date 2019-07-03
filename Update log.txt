@@ -1,0 +1,59 @@
+VERSION 2.3
+
+Such as hassle to remember collecting things that Iroha does not collect and scrolling through what
+she has collected million times, so her partner decided to teach her to get more things and whatnot
+
++ New features & improvements:
+  - Grab Chief Librarian's VC on the payday
+  - Limit displayed delving VCs and sprites to those of new or ring-equipped writers
+  - Limit repeating displaying of VC when kaika-ing a writer
+
++ Bug fixes:
+  - Memoria transcription parsing names of non-writer characters
+  - dining_hall VCs are caught but not displayed
+  - New reports' memorias are not shown right upon refresh
+  - Correct typo(?) in Kyoshi's name and match Mori's in-game kanji writing
+
+* Testing feature: Display kaika stat changes by node as a writer is being kaika'ed
+
+=======================================================
+VERSION 2.2.1
+
+As requested, the transmigration VC for summoned writers with proper naming.
+
+=======================================================
+VERSION 2.2
+
+Thank you for having Iroha as your assistant-in-practice and enduring her current short-tempered
+partner. Iroha has now learnt a few more skills including:
+
++ Producing a 100%-guaranteed correct transcription for memoria
++ Grabbing special dual attack quotes and final words VCs with proper naming
++ Writers' Register: Showing a writer's full list of voice clips with corrected names, sprites with
+as-correct-as-possible and a list of recollection claimable from Taint Books Delves
+
++ Translating names of regular (i.e. non-event) tainted books
++ Grabbing more VCs
+ - Formation
+ - Ensouled Book Delve:
+   > The assistant's ensouled_start and ensouled_complete VCs
+   > Transcription for the ensouled_start line
+
+* Testing feature: Parsing gift replies from writers in Strolls, accompanied with noted trust range
+
+=======================================================
+VERSION 2.1
+
+(From now, last version aka "Irochoco 7" counted as 1.7)
+
++ Updated all writers & Taints up to the current event (hopefully I did not forget any Taints)
+
++ Now able to:
+ - Grab memoria data from the Memoria Index and Reports as Wikia templates
+ - Grab rings' data from the Memoria Index and Ring Register as Wikia templates
+ - Display drop items with translated names
+ - Shows strolls' lines as Wikia templates + links to VCs and altfits used in strolls
+ - Shows list of assistant's altfits in Office
+
+* Testing feature: Display translated event points + their bonus (memoria/first clear) - limited to
+Alice event only at the moment
