@@ -1,16 +1,18 @@
 # *Iroha*
 #### To-do list
-* Parse and display v1 recollections as Wikia codes
-* Update all recollection-related functions
+* [ ] Parse and display v1 recollections as Wikia codes
+* [ ] Update all recollection-related functions
+* [ ] List all event recollections for each Writer's Register entry correctly
 
 * ***Suggestions:***
-    * Unzip v2 recollection files into text files
-    * Translate the extracted v2 recollection file into Wikia codes
+    * [ ] Unzip v2 recollection files into text files
+    * [ ] Translate the extracted v2 recollection file into Wikia codes
         * *A JavaScript compiler is needed here?*
+    * [ ] A menu that allows which function of Iroha to stop working (e.g. stop grabbing dining menu repeatedly)
 
 * ***Bugs:***
     - [X] Memoria: Non-writer characters featured in memoria cards are displayed with untranslated names
-    - [ ] Blossoming: Unlocked node names might show up incorrectly 
+    - [ ] Blossoming: Unlocked node names ~might~ show up incorrectly when unlocking more than one node at a time
 
 ## About
 * ***Latest released version:*** 2.3
