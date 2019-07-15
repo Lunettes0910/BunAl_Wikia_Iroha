@@ -2,21 +2,22 @@
 #### To-do list
 * [ ] Parse and display v1 recollections as Wikia codes
 * [ ] Update all recollection-related functions
-* [ ] List all event recollections for each Writer's Register entry correctly
+* [x] List all event recollections for each Writer's Register entry correctly
 
 * ***Suggestions:***
     * [ ] Unzip v2 recollection files into text files
-    * [ ] Translate the extracted v2 recollection file into Wikia codes
-        * *A JavaScript compiler is needed here?*
+    * [ ] ~~Translate the extracted v2 recollection file into Wikia codes~~
+        * ~~*A JavaScript compiler is needed here?*~~
     * [ ] A menu that allows which function of Iroha to stop working (e.g. stop grabbing dining menu repeatedly)
+    * For other smaller suggestions that might be handled sideline, check the project's plan [here](https://github.com/users/MinhNTran-1227/projects/3)
 
 * ***Bugs:***
     - [X] Memoria: Non-writer characters featured in memoria cards are displayed with untranslated names
-    - [ ] Blossoming: Unlocked node names ~might~ show up incorrectly when unlocking more than one node at a time
+    - [ ] Blossoming: Unlocked node names *might* show up incorrectly when unlocking more than one node at a time
 
 ## About
 * ***Latest released version:*** 2.3
-* ***Testing version:*** 2.3.1
+* ***Testing version:*** 2.4
 
 This project is a small extension used to collect materials and data from the Japanese browser game *Bungo to Alchemist* (lit. *Writers and Alchemists*). The plugin was written to support the maintenance and update of [the game's Wikia](https://bungo.fandom.com) and has been passed down among the Wikia's staff.
 

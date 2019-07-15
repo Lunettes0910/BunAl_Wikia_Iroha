@@ -36,6 +36,44 @@ const PSEUDO_STAT_COUNT = 5;
 
 /* ----------------------------- GLOBAL DATA MEMBERS ---------------------------- */
 
+/** Days of a week */
+var weekDays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+/** Months of a year */
+var months = ["", "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+/** Event names, 3 per line, ordered by ID from the Recollection Register */
+var eventNames = ["", "Purify 'The Five-Storied Pagoda'", "An Encouragement on Learning",
+    "Research on Sakaguchi Ango", "Co-Research with Chief Librarian", "An Encouragement of Learning ~Cherry Blossom~",
+    "Research on Arishima Takeo", "Purify 'The Sunless Street'", "Research on Ibuse Masuji",
+    "Co-Research with Chief Librarian 2", "Cafe Royale Bloodbath", "Research on Kawabata Yasunari",
+    "Spooky Summer Nights", "Research on Masamune Hakuchou", "Purify 'Portrait of a Contemporary Student'",
+    "Co-Research with Chief Librarian 3", "", "Mad Tea Party",
+    "Purify 'The Setting Sun'", "", "Co-Research with Chief Librarian 4",
+    "", "Purify 'Notes of a Student Examinee'", "Three-Way Snowball Fight",
+    "", "Aka and Ao's Research on Alchemy", "Research on Yumeno Kyuusaku",
+    "Co-Research with Chief Librarian 5", "The Mad Banquet on All Saint’s Day", "",
+    "Purify 'Snow Country'", "", "",
+    "Aka and Ao's Research on Alchemy 2", "Research on Ogawa Bimei", "An Encouragement of Learning ~Flutter~",
+    "", "", "The Mad Banquet ~Deathday Celebration~",
+    "", "Co-Research with Chief Librarian 6", "",
+    "Research on Naoki Sanjuugo", "Purify 'Towards the Truth'", "",
+    "Summer Daydream", "", "Aka and Ao's Research on Alchemy 3",
+    "Research on Itou Sachio", "", "Co-Research with Chief Librarian 7",
+    "", "Repair the Grimoire of Fate", "Writers and Alchemists",
+    "Purify 'Cuckoo'", "", "Research on Iwano Houmei",
+    "Co-Research with Chief Librarian 8", "Aka and Ao's Research on Alchemy 4", "Research on Yoshii Isamu",
+    "Three-Way Snowball Fight ~Holy Night Campaign", "Purify 'One Hundred People, One Poem Each'", "Co-Research with Chief Librarian 9",
+    "", "Research on Tokutomi Roka", " Aka and Ao's Study on Alchemy ~First Years~",
+    "Daily Life at Cafe Noir", "", "",
+    "", "Co-Research with Chief Librarian 10", "Research on Nakazato Kaizan",
+    "The Green Messenger from Outer Space", "", "Aka and Ao's Study on Alchemy ~Second Years~",
+    "Spring Cleaning Mad Banquet", "", "Co-Research with Chief Librarian 11",
+    "Research on Miki Rofuu", "Purify 'The Moon Over the Mountain'", "",
+    "", "Blood Oath Mad Banquet", "",
+    "Co-Research with Chief Librarian ~Part Twelve~"
+];
+
 /** HTML output */
 var out = document.getElementById("out");
 
@@ -151,11 +189,16 @@ function (request) {
                 }
                 else if (endpt[1].includes("skits/quest/")              /* Event recos */
                         || endpt[1].includes("skits/event/")
+                        || endpt[1].includes("page/event/")
                         || endpt[1].includes("skits/foreign/")) {       /* Sealed recos */
                     request.getContent(skitsQuest);
                 }
-                else if (endpt[1].includes("units/supply")) {           /* Dining Hall recos */
+                else if (endpt[1].includes("units/supply")
+                        || endpt[1].includes("skits/dining")) {          /* Dining Hall recos */
                     request.getContent(skitsDining);
+                }
+                else if (endpt[1].includes("skits/normal")) {           /* Anniversary recos */
+                    request.getContent(anniRecos);
                 }
                 else if (endpt[1].includes("skits/main/")) {            /* In-delve recos (old?) */
                     request.getContent(skitsMain);
@@ -179,7 +222,6 @@ function (request) {
                 else if (endpt[1].includes("ring_album/")) {            /* Ring in Ring Register */
                     request.getContent(ringRegister);
                 }
-
         }
     }
 });
@@ -330,35 +372,10 @@ function start(content) {
     o += b("Tainted Book:<br/><i>" + bookTranslate(json.stage.name) + "</i>");
 
     /* Check for voice paths and prints recollection lines if found */
-    if (json.adv != null && json.adv.length != 0) {
-        if (json.adv[0].voice_paths != null && json.adv[0].voice_paths.length != 0) {
-            o += b("Voice Paths: ");
-            for (var item of json.adv[0].voice_paths)
-                o += br(link("http://cdn.bungo.dmmgames.com" + convertVoiceNum(item.asset_no)));
-        }
-
-        if (json.adv[0].contents == null) {
-            o += "<b>Recollection Name:</b> " + json.adv[0].title;
-            o += br(llink("http://cdn.bungo.dmmgames.com" + json.adv[0].novelPath, "Recollection text file (save as .zip then extract to .txt)"));
-        } else {
-            o += b("Speaker Numbers: ");
-            for (var item of json.adv[0].contents)
-                o += item.talker_num + " ";
-
-            o += b("Skit Code: ");
-            for (var item of json.adv[0].contents) {
-                if (item.serif != "") {
-                    o += br("{{Speech<br>|wr = " + nameTranslate(item.talker_name) + "<br>|jp = " + item.serif.replace(/\s/g, "").replace(/n/g, "").replace(/\\/g, "&lt;br&gt;<br>") + "<br>|en = <br>|vo = <br>}}");
-
-                    if (item.select_1 != "" && item.select_2 != "") {
-                        o += br("&lt;div class=&#34;shelf-header&#34;&gt;&#39;&#39;&#39;Choice 1&#39;&#39;&#39;&lt;/div&gt;<br>{{Speech<br>|jp = " + item.select_1 + "<br>|en = <br>|vo = <br>}}");
-                        o += br("&lt;div class=&#34;shelf-header&#34;&gt;&#39;&#39;&#39;Choice 1&#39;&#39;&#39;&lt;/div&gt;<br>{{Speech<br>|jp = " + item.select_2 + "<br>|en = <br>|vo = <br>}}");
-                        o += "<br>&lt;hr&gt;";
-                    }
-                }
-            }
-        }
-    }
+    if (json.adv == null || json.adv.length == 0)        
+        o += (json.contents == null || json.contents.length == 0)? newRecos(json) : oldRecos(json);
+    else 
+        o += (json.contents == null || json.contents.length == 0)? newRecos(json.adv[0]) : oldRecos(json.adv[0]);
 
     /** A placeholder for parsing the writer's name to the images */
     var writer_name = "";
@@ -375,7 +392,8 @@ function start(content) {
 
         if (unit.master.name !== writer_name) {
             if (unit.voices.length > DELVE_DEFAULT_VC_COUNT) {
-                o += "<hr>\n" + p(unit.mst_unit_id + " " + writer_name + " (" + weaponTranslate(unit.category) + ")" );
+                o += "<hr>\n" + p(unit.mst_unit_id + " " + writer_name + " (" + weaponTranslate(unit.category) + ")");
+                writer_name = writer_name.replace(/ /g, "_");
 
                 o += b("Writer sprites: ");
                 o += br(llink("http://cdn.bungo.dmmgames.com" + unit.images[1].path, writer_name + "_bookdelve_(ring).png"));
@@ -383,6 +401,7 @@ function start(content) {
 
                 o += b("Battle VCs: ");
                 o += br(llink("http://cdn.bungo.dmmgames.com" + unit.voices[23].path, writer_name + "_tainted_attackring"));
+
             }
         } else {
             o += "<hr>\n" + p(unit.mst_unit_id + " " + writer_name);
@@ -393,16 +412,15 @@ function start(content) {
             o += br(llink("http://cdn.bungo.dmmgames.com" + unit.images[1].path, writer_name + "_bookdelve.png"));
             o += br(llink("http://cdn.bungo.dmmgames.com" + unit.images[2].path, writer_name + "_weakened.png"));
             o += b("Battle VCs: ");
-            for (var item of unit.voices) {
+            for (var item of unit.voices)
                 o += br(llink("http://cdn.bungo.dmmgames.com" + item.path, convertVoiceNum(item.asset_no)));
-            }
         }
 
-        /* Store their names to other book delve functions */
-        writers[writer_order++] = writer_name.replace(/ /g, "_");
-    }
+            /* Store their ID to other book delve functions */
+            writers[writer_order++] = unit.mst_unit_id;
+        }
 
-    out.innerHTML = o;
+        out.innerHTML = o;
 }
 
 /** This function displays the enemies and item drops encountered in a delve node.
@@ -470,11 +488,11 @@ function battlePhase(phaseContent) {
 
         /* First dual VC */
         phase_data += br(llink("http://cdn.bungo.dmmgames.com"+ turn.units[0].voice,
-                    writers[turn.units[0].number] + "_" + writers[turn.units[1].number] + "_dual1"));
+                nameTranslate(writers[turn.units[0].number]) + "_" + nameTranslate(writers[turn.units[1].number]) + "_dual1"));
 
         /* Second dual VC */
         phase_data += br(llink("http://cdn.bungo.dmmgames.com"+ turn.units[1].voice,
-                    writers[turn.units[0].number] + "_" + writers[turn.units[1].number] + "_dual2"));
+                nameTranslate(writers[turn.units[0].number]) + "_" + nameTranslate(writers[turn.units[1].number]) + "_dual2"));
         }
 
     /* Look for final words */
@@ -519,7 +537,8 @@ function result(content) {
     /* Check for event points */
     if (json.event != null) {
         /** A placeholder for the event point's translated name */
-        var event_item_name = eventItemTranslate(json.event.point.name);
+        var event_item_name = json.event.point.name.split("-");
+        event_item_name = eventItemTranslate(event_item_name[0]);
 
         o += b("<i>Event point:</i> ");
         o += json.event.point.point + " " + event_item_name;
@@ -761,7 +780,7 @@ function supply(content) {
   * @returns N/A
   * @see letters
   */
- function album(content) {
+function album(content) {
     json = JSON.parse(content);
 
     if (json.album_unit == null)
@@ -782,8 +801,25 @@ function supply(content) {
         o += b("Recollections in Tainted Book Delves: ");
         o += "<ul>";
         for (var delve_reco of json.skits.quest_skits) {
-            o += "<li>" + bookTranslate(delve_reco.sub_title) + " ";
-            o += "<i>(" + ((delve_reco.is_get)? "claimed" : "unclaimed") + ")</i>";
+            if (delve_reco.event_id !== null)
+                o += "<li><b><i>Event:</i></b> " + eventNames[delve_reco.event_id] + " ";
+            else
+                o += "<li>" + bookTranslate(delve_reco.sub_title) + " ";
+
+            o += "<i>(" + ((delve_reco.is_get) ? "claimed" : "unclaimed") + ")</i>";
+            o += "</li>";
+        }
+
+        o += "</ul>";
+    }
+
+    /* List all possible recollections in Tainted Book Delves */
+    if (json.skits.event_skits !== null && json.skits.event_skits.length !== 0) {
+        o += b("Event Reward Recollections");
+        o += "<ul>";
+        for (var event_reco of json.skits.event_skits) {
+            o += "<li><b><i>Event:</i></b> " + eventNames[event_reco.event_id] + " ";
+            o += "<i>(" + ((event_reco.is_get) ? "claimed" : "unclaimed") + ")</i>";
             o += "</li>";
         }
 
@@ -997,47 +1033,18 @@ function strollsReply(content) {
 
 /** This function displays data of a memoria, including its info and links to available
   * images & next lvl images (if the memoria is Lvl2)
-  * @version 1.2
-  * @since June 15, 2019
+  * @version 2.0
+  * @since July 15, 2019
   * @param {*} content The content found in the requesting URL
   * @returns N/A
+  * @see memoriaInfo
   */
 function memoria(content) {
     json = JSON.parse(content);
 
 	o += b("Memoria:<br/>");
 
-    /* Codes for a memoria card */    
-    o += "<code>{{Cardbox</code><br/>";
-
-    /* Parse the kanji name */
-
-    /** A placeholder for kanji names as displayed on Wikia */
-    var mem_kanji_name = json.card.master.name.split("-");
-
-    o += "<code>|kanji = " + mem_kanji_name[0] + "</code><br/>";
-
-    /* Parse the correct furigana name
-     * Note: All memoria with ID < 109 (before Shouyou's "Cherry Blossoms Dancing in the Wind") with the exception of 1* memorias have an excess letter at the end
-     */
-    o += "<code>|furigana = " + ((json.card.master.id < 50 || (json.card.master.id > 66 && json.card.master.id < 109) && mem_kanji_name.length > 1)? json.card.master.name_kn.substr(0, json.card.master.name_kn.length - 1) : json.card.master.name_kn) + "</code><br/>";
-    o += "<code>|rarity = " + json.card.master.rare + "</code><br/>";
-
-    /* Parse the writer's name if available */
-    o += "<code>|wr = ";
-
-    if (mem_kanji_name.length > 1) {
-        /** A placeholder for featured writer for verifying purpose */
-        var wr_name = nameTranslate(mem_kanji_name[1]);
-
-        if (wr_name !== mem_kanji_name[1])
-            o += wr_name;
-    }
-
-	o += "</code><br/>";
-
-	/* Parse the memoria's description */
-    o += "<code>|desc = &lt;&excl;--" + json.card.master.description.replace(/↵/g, "&lt;br&sol;&gt;").replace(/\\n/g, "&lt;br&sol;&gt;") + "--&gt;"  + "</code><br/>";
+    o += memoriaInfo(json.card.master);
 
     /* Parse the memoria's stats */
 
@@ -1069,14 +1076,11 @@ function memoria(content) {
 }
 
 /** This function displays info of all memorias found in other librarians' Reports.
-  * + Note: Similar algorithm was used from {@link memoria} due to difference in how
-  * the information were accessed and stored
-  * + TL;DR: Devs why you do this
-  * @version 1.1
-  * @since June 15, 2019
+  * @version 2.0
+  * @since July 15, 2019
   * @param {*} content The content found in the requesting URL
   * @returns N/A
-  * @see memoria
+  * @see memoriaInfo
   */
 function reportMemorias(content) {
     json = JSON.parse(content);
@@ -1088,36 +1092,7 @@ function reportMemorias(content) {
         if (report.card != null) {
             o += b("Report #" + count + " memoria:<br/>");
 
-            /* Codes for a memoria card */    
-            o += "<code>{{Cardbox</code><br/>";
-
-            /* Parse the kanji name */
-
-            /** A placeholder for kanji names as displayed on Wikia */
-            var mem_kanji_name = report.card.name.split("-");
-
-            o += "<code>|kanji = " + mem_kanji_name[0] + "</code><br/>";
-           
-            /* Parse the correct furigana name
-            * Note: All memoria with ID < 109 (before Shouyou's "Cherry Blossoms Dancing in the Wind") with the exception of 1* memorias have an excess letter at the end
-            */
-            o += "<code>|furigana = " + ((report.card.id < 50 || (report.card.id > 66 && report.card.id < 109) && mem_kanji_name.length > 1)? report.card.name_kn.substr(0, report.card.name_kn.length - 1) : report.card.name_kn) + "</code><br/>";
-            o += "<code>|rarity = " + report.card.rare + "</code><br/>";
-
-            /* Parse the writer's name if available */
-            o += "<code>|wr = ";
-            if (mem_kanji_name.length > 1) {
-                /** A placeholder for featured writer for verifying purpose */
-                var wr_name = nameTranslate(mem_kanji_name[1]);
-        
-                if (wr_name !== mem_kanji_name[1])
-                    o += wr_name;
-            }
-       
-            o += "</code><br/>";
-
-            /* Parse the memoria's description */
-            o += "<code>|desc = &lt;&excl;--" + report.card.description.replace(/↵/g, "&lt;br&sol;&gt;").replace(/\\n/g, "&lt;br&sol;&gt;") + "--&gt;"  + "</code><br/>";
+            o += memoriaInfo(report.card);
 
             /* Memoria from reports don't have specific codes for stats & level */
             o += "<code>|stats = </code><br/>";
@@ -1137,6 +1112,55 @@ function reportMemorias(content) {
     out.innerHTML = o;
 }
 
+/** This function collects all basic info of a memoria:
+  * + Memoria's name in kanji and hiragana 
+  * + Featured writer
+  * + Description
+  * @version 1.0
+  * @since July 15, 2019
+  * @param {*} info The content containing a memoria's basic info
+  * @return A string consisting of the memoria's name, writer and description
+  */
+function memoriaInfo(info) {
+    /** Placeholder containing all info collected */
+    var memoria_data = "";
+
+    /* Codes for a memoria card */
+    memoria_data += "<code>{{Cardbox</code><br/>";
+
+    /* Parse the kanji name */
+
+    /** A placeholder for kanji names as displayed on Wikia */
+    var mem_kanji_name = info.name.split("-");
+
+    memoria_data += "<code>|kanji = " + mem_kanji_name[0] + "</code><br/>";
+
+    /* Parse the correct furigana name
+     * Note: All memoria with ID < 109 (before Shouyou's "Cherry Blossoms Dancing in the Wind") with the exception of 1* memorias have an excess letter at the end
+     */
+    memoria_data += "<code>|furigana = " + ((info.id < 50 || (info.id > 66 && info.id < 109) && mem_kanji_name.length > 1) ? info.name_kn.substr(0, info.name_kn.length - 1) : info.name_kn) + "</code><br/>";
+    memoria_data += "<code>|rarity = " + info.rare + "</code><br/>";
+
+    /* Parse the writer's name if available */
+    memoria_data += "<code>|wr = ";
+
+    if (mem_kanji_name.length > 1) {
+        /** A placeholder for featured writer for verifying purpose */
+        var wr_name = nameTranslate(mem_kanji_name[1]);
+
+        if (wr_name !== mem_kanji_name[1])
+            memoria_data += wr_name;
+    }
+
+    memoria_data += "</code><br/>";
+
+    /* Parse the memoria's description */
+    memoria_data += "<code>|desc = &lt;&excl;--" + info.description.replace(/↵/g, "&lt;br&sol;&gt;").replace(/\\n/g, "&lt;br&sol;&gt;") + "--&gt;" + "</code><br/>";
+
+    return memoria_data;
+}
+
+
 /** This function grabs the Chief's VC in paydays.
   * + Parse the month and display a link to the VC
   * @version 1.0
@@ -1151,7 +1175,7 @@ function salary(content) {
         return;
 
     /* Parse the month */
-    o += b(monthTranslate(json.month) + " Payday:");
+    o += b(months[json.month] + " Payday:");
 
     /* Grab the login VC */
     o += br(llink("http://cdn.bungo.dmmgames.com" + json.popup.voice_path, "Chief Librarian's VC"));
@@ -1286,30 +1310,41 @@ function ringMemoria(content) {
 function skitsQuest(content) {
     json = JSON.parse(content);
 
-    if (json.contents == null) {
-        o += "<b>Recollection Name:</b> " + json.title;
-        o += br(llink("http://cdn.bungo.dmmgames.com" + json.novelPath, "Recollection text file (save as .zip then extract to .txt)"));
+    /* Check for voice paths and prints recollection lines if found */
+    if (json.adv == null || json.adv.length == 0)
+        o += (json.contents == null || json.contents.length == 0) ? newRecos(json) : oldRecos(json);
+    else
+        o += (json.contents == null || json.contents.length == 0) ? newRecos(json.adv[0]) : oldRecos(json.adv[0]);
 
-    } else {
-        o += b("Skit Voice Paths: ");
-        for (var item of json.voice_paths) {
-            o += br(link("http://cdn.bungo.dmmgames.com" + item));
-        }
+/*************
+    if (json.adv == null) {
+        if (json.contents == null || json.contents.length == 0)
+            o += newRecos(json);
 
-        o += b("Speaker Numbers: ");
-        for (var item of json.contents) {
-            if (item.serif != "") {
-                o += item.talker_num + " ";
+        else {
+            o += b("Skit Voice Paths: ");
+            for (var item of json.voice_paths) {
+                o += br(link("http://cdn.bungo.dmmgames.com" + item));
+            }
+
+            o += b("Speaker Numbers: ");
+            for (var item of json.contents) {
+                if (item.serif != "") {
+                    o += item.talker_num + " ";
+                }
+            }
+
+            o += b("Code: ")
+            for (var item of json.contents) {
+                if (item.serif != "") {
+                    o += br("{{Speech" + "<br>" + "|wr = " + nameTranslate(item.talker_name) + "<br>" + "|jp = " + item.serif.replace(/\s/g, "").replace(/n/g, "&lt;br&gt;<br>").replace(/\\/g, "") + "<br>" + "|en = " + "<br>|vo = <br>}}");
+                }
             }
         }
+    } else
+        o += o += b("Event ") + newRecos(json.adv);
+*/
 
-        o += b("Code: ")
-        for (var item of json.contents) {
-            if (item.serif != "") {
-                o += br("{{Speech" + "<br>" + "|wr = " + nameTranslate(item.talker_name) + "<br>" + "|jp = " + item.serif.replace(/\s/g, "").replace(/n/g, "&lt;br&gt;<br>").replace(/\\/g, "") + "<br>" + "|en = " + "<br>|vo = <br>}}");
-            }
-        }
-    }
     out.innerHTML = o;
 }
 
@@ -1317,7 +1352,7 @@ function skitsMain(content) {
     json = JSON.parse(content);
 
     if (json.contents == null) {
-        o += "<b>Recollection Name:</b> " + json.title;
+        o += b("Recollection Name: ") + json.title;
         o += br(llink("http://cdn.bungo.dmmgames.com" + json.novelPath, "Recollection text file (save as .zip then extract to .txt)"));
 
     } else {
@@ -1343,21 +1378,97 @@ function skitsMain(content) {
 function skitsDining(content) {
     json = JSON.parse(content);
 
-    o += br(llink("http://cdn.bungo.dmmgames.com" + json.adv.food_path, "Food Image"))
-    o += b("Skit Voice Paths: ");
-    for (var item of json.adv.voice_paths) {
-        o += br(link("http://cdn.bungo.dmmgames.com" + item));
-    }
-    o += b("Speaker Numbers: ");
-    o += item.talker_num + " ";
-    o += b("Skit Code: ");
-    for (var item of json.adv.contents) {
-        if (item.serif != "") {
-            o += br("{{Speech<br>|wr = " + nameTranslate(item.talker_name) + "<br>|jp = " + item.serif.replace(/\s/g, "").replace(/n/g, "&lt;br&gt;<br>").replace(/\\/g, "") + "|en = <br>|vo = <br>}}");
+    if (json.is_birthday) {
+        o += b("Birthday Recollection:<br/>");
+
+        var wr_name = "";
+        var bday_quote = "";
+
+        o += "<code>{{Speech<br/></code>";
+
+        for (var action of json.adv.contents) {
+            if (action.talker_mst_unit_id != null) {
+                wr_name += nameTranslate(action.talker_mst_unit_id);
+                bday_quote += action.serif.replace(/\s/g, "").replace(/\\n/g, "&lt;br&sol;&gt;");
+                break;
+            }
+        }
+
+        o += "<code>|wr = " + wr_name + "</code><br/>";
+        o += "<code>|jp = " + bday_quote + "</code><br/>";
+        o += "<code>|vo = " + llink("http://cdn.bungo.dmmgames.com" + json.adv.voice_paths[0], wr_name + "_dininghall_birthday") + "</code><br/><code>}}</code>";
+    } else {
+        o += b("Skit Voice Paths: ");
+        for (var item of json.adv.voice_paths) {
+            o += br(link("http://cdn.bungo.dmmgames.com" + item));
+        }
+        o += b("Speaker Numbers: ");
+        o += item.talker_num + " ";
+        o += b("Skit Code: ");
+        for (var item of json.adv.contents) {
+            if (item.serif != "") {
+                o += br("{{Speech<br>|wr = " + nameTranslate(item.talker_name) + "<br>|jp = " + item.serif.replace(/\s/g, "").replace(/n/g, "&lt;br&gt;<br>").replace(/\\/g, "") + "|en = <br>|vo = <br>}}");
+            }
         }
     }
 
     out.innerHTML = o;
+}
+
+function anniRecos(content) {
+    json = JSON.parse(content);
+
+    o += newRecos(json);
+    out.innerHTML = o;
+}
+
+function oldRecos(recoContent) {
+    /** Placeholder containing codes for the recollection */
+    var reco_data = "";
+
+    if (recoContent.voice_paths != null && recoContent.voice_paths.length != 0) {
+        /** Placeholder array for VC links */
+        var vc_links = [];
+
+        /* Save all collected VCs into one array */
+        for (var item of recoContent.voice_paths)
+            vc_links.push("http://cdn.bungo.dmmgames.com" + item);
+    }
+
+    reco_data += b("Speaker Numbers: ");
+    for (var item of reco_data.contents)
+        reco_data += item.talker_num + " ";
+
+    reco_data += b("Skit Code: ");
+    for (var item of json.adv[0].contents) {
+            if (item.serif != "") {
+                o += br("{{Speech<br>|wr = " + nameTranslate(item.talker_name) + "<br>|jp = " + item.serif.replace(/\s/g, "").replace(/n/g, "").replace(/\\/g, "&lt;br&gt;<br>") + "<br>|en = <br>|vo = <br>}}");
+
+                if (item.select_1 != "" && item.select_2 != "") {
+                    o += br("&lt;div class=&#34;shelf-header&#34;&gt;&#39;&#39;&#39;Choice 1&#39;&#39;&#39;&lt;/div&gt;<br>{{Speech<br>|jp = " + item.select_1 + "<br>|en = <br>|vo = <br>}}");
+                    o += br("&lt;div class=&#34;shelf-header&#34;&gt;&#39;&#39;&#39;Choice 1&#39;&#39;&#39;&lt;/div&gt;<br>{{Speech<br>|jp = " + item.select_2 + "<br>|en = <br>|vo = <br>}}");
+                    o += "<br>&lt;hr&gt;";
+                }
+            }
+        }
+
+    return reco_data;
+}
+
+function newRecos(recoContent) {
+    /** Placeholder containing codes for the recollection */
+    var reco_data = "";
+
+    if (recoContent == null)
+        return;
+
+    /** Parse reco name */
+    reco_data += b("Recollection Name: ") + recoContent.title;
+
+    /** Link to the reco file */
+    reco_data += br(llink("http://cdn.bungo.dmmgames.com" + recoContent.novelPath, "Recollection text file (save as .zip then extract to .txt)"));
+
+    return reco_data;
 }
 
 /* -------------- WRITERS, TAINTS & OTHER DATA CONVERSION ----------------
@@ -1565,6 +1676,7 @@ function nameTranslate(name) {
             return "Masamune Hakuchou";
             break;
         case "徳富蘆花":
+        case "徳冨蘆花":
         case 48:
             return "Tokutomi Roka";
             break;
@@ -1971,7 +2083,7 @@ function isBoss(jpName) {
             return "Boy of Chaotic Attire";
             break;
 
-        /* TO-4 & "Coup de Main" events' special boss */
+        /* TO-4 boss */
         case "渾淆装の少年無窮":
             return "Boy of Chaotic Attire - Immortal";
             break;
@@ -1981,18 +2093,28 @@ function isBoss(jpName) {
             return "Longing for Death";
             break;
 
-        /* FMA collab boss */
-        case "彷徨いし者":
-            return "Wandering One";
+ 
+        /* "Alice's Adventures in Wonderland" bosses */
+        case "封印の護":
+            return "Protector of the Seal";
             break;
 
-        /* "Alice's Adventures in Wonderland" bosses */
         case "ミメシス=アリス":
             return "Mimesis Alice";
             break;
 
         case "ミメシス=ホームズ":
             return "Mimesis Holmes";
+            break;
+
+        /* "Coup de Main" events' special bosses */
+        case "苦悶の虎":
+            return "Tiger of Anguish";
+            break;
+
+        /* FMA collab boss */
+        case "彷徨いし者":
+            return "Wandering One";
             break;
 
         default:
@@ -2256,7 +2378,7 @@ function eventItemTranslate(jpName) {
     return jpName;
  }
 
- /** This function converts the name of a book into English.
+/** This function converts the name of a book into English.
   * + Translate the item's name into English if it is one of the books listed
   * in the function.
   * @version 1.0
@@ -2266,7 +2388,7 @@ function eventItemTranslate(jpName) {
   * @todo Figure out how to translate books from Sealed Library
   */
 function bookTranslate(jpName) {
-     switch (jpName) {
+    switch (jpName) {
         /* SPECIAL-series (Thoughts) */
         case "墨汁一滴":
             return "SPECIAL-1 (Thoughts) - A Drop of Ink";
@@ -2389,7 +2511,7 @@ function bookTranslate(jpName) {
         case "D坂の殺人事件":
             return "HO-3 - The Case of Murder on D Hill";
             break;
-        case "坊ちゃん":
+        case "坊っちゃん":
             return "HO-4 - Botchan";
             break;
 

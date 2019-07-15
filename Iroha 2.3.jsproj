@@ -68,16 +68,19 @@
     <AppxManifest Include="package.appxmanifest">
       <SubType>Designer</SubType>
     </AppxManifest>
-    <Content Include="css\style.css" />
-    <Content Include="devtools.html" />
-    <Content Include="images\background.jpg" />
-    <Content Include="images\icon_128.png" />
-    <Content Include="index.html" />
-    <Content Include="manifest.json" />
-    <Content Include="js\app.js" />
-    <Content Include="js\html.js" />
-    <Content Include="js\index.js" />
     <None Include="Iroha 2.3_TemporaryKey.pfx" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Iroha\css\style.css" />
+    <Content Include="Iroha\devtools.html" />
+    <Content Include="Iroha\images\background.jpg" />
+    <Content Include="Iroha\images\icon_128.png" />
+    <Content Include="Iroha\index.html" />
+    <Content Include="Iroha\js\app.js" />
+    <Content Include="Iroha\js\html.js" />
+    <Content Include="Iroha\js\index.js" />
+    <Content Include="Iroha\manifest.json" />
+    <Content Include="Iroha\Update log.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\$(WMSJSProjectDirectory)\Microsoft.VisualStudio.$(WMSJSProject).targets" />
   <!-- To modify your build process, add your task inside one of the targets below then uncomment
