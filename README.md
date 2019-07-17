@@ -1,6 +1,6 @@
 # *Iroha*
 #### To-do list
-* [ ] Parse and display v1 recollections as Wikia codes
+* [x] Parse and display v1 recollections as Wikia codes
 * [ ] Update all recollection-related functions
 * [x] List all event recollections for each Writer's Register entry correctly
 

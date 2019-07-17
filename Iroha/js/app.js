@@ -83,9 +83,6 @@ var o = "";
 /** Writers' deck placeholder for in-delve checks */
 var writers = ["", "", "", ""];
 
-/** A single stat placeholder for writer blossoming */
-var writerKaika = new writerBlossoming(0, 0, 0, 0, 0, 0, 0, 0, 0);
-
 /* ----------------------- UI IMPLEMENTATION AND DISPLAYS -----------------------
  * 
  * + Listener to the browser's activities
@@ -173,7 +170,7 @@ function (request) {
                 }
                 else if (endpt[1].includes("skill_tree")) {             /* Blossoming */
                     if (endpt[1].includes("page/skill_tree"))
-                        writerKaika = new writerBlossoming(0, 0, 0, 0, 0, 0, 0, 0, 0);
+                        var writerKaika = new writerBlossoming(0, 0, 0, 0, 0, 0, 0, 0, 0);
 
                     request.getContent(skillTree);
                 }
@@ -184,24 +181,21 @@ function (request) {
                         ||endpt[1].includes("change")) {                /* Formation */
                     request.getContent(voiceImmediate);
                 }
-                else if (endpt[1].includes("page/supply")) {            /* Dining Hall menu */
+                else if (endpt[1].includes("supply")                    /* Dining Hall menu and recos */
+                    || endpt[1].includes("skits/dining")) {
                     request.getContent(supply);
                 }
-                else if (endpt[1].includes("skits/quest/")              /* Event recos */
-                        || endpt[1].includes("skits/event/")
-                        || endpt[1].includes("page/event/")
-                        || endpt[1].includes("skits/foreign/")) {       /* Sealed recos */
-                    request.getContent(skitsQuest);
+                else if (endpt[1].includes("mypage/playSkit")) {        /* Limited-time recos at Library */
+                    request.getContent(limitedRecos);
                 }
-                else if (endpt[1].includes("units/supply")
-                        || endpt[1].includes("skits/dining")) {          /* Dining Hall recos */
-                    request.getContent(skitsDining);
-                }
-                else if (endpt[1].includes("skits/normal")) {           /* Anniversary recos */
-                    request.getContent(anniRecos);
+                else if (endpt[1].includes("page/event/")) {            /* Event recos played from the event page */
+                    request.getContent(delveRecos);
                 }
                 else if (endpt[1].includes("skits/main/")) {            /* In-delve recos (old?) */
-                    request.getContent(skitsMain);
+                    request.getContent(mainRecos);
+                }
+                else if (endpt[1].includes("skits/")) {                 /* Recos from the Recollections Register */
+                    request.getContent(registerRecos);
                 }
                 else if (endpt[1].includes("page/albums/units/")) {     /* Writers' Register */
                     request.getContent(album);
@@ -372,10 +366,7 @@ function start(content) {
     o += b("Tainted Book:<br/><i>" + bookTranslate(json.stage.name) + "</i>");
 
     /* Check for voice paths and prints recollection lines if found */
-    if (json.adv == null || json.adv.length == 0)        
-        o += (json.contents == null || json.contents.length == 0)? newRecos(json) : oldRecos(json);
-    else 
-        o += (json.contents == null || json.contents.length == 0)? newRecos(json.adv[0]) : oldRecos(json.adv[0]);
+    o += (json.adv == null || json.adv.length == 0) ? "" : recollection(json.adv[0]);
 
     /** A placeholder for parsing the writer's name to the images */
     var writer_name = "";
@@ -392,7 +383,7 @@ function start(content) {
 
         if (unit.master.name !== writer_name) {
             if (unit.voices.length > DELVE_DEFAULT_VC_COUNT) {
-                o += "<hr>\n" + p(unit.mst_unit_id + " " + writer_name + " (" + weaponTranslate(unit.category) + ")");
+                o += "<hr/>\n" + p(unit.mst_unit_id + " " + writer_name + " (" + weaponTranslate(unit.category) + ")");
                 writer_name = writer_name.replace(/ /g, "_");
 
                 o += b("Writer sprites: ");
@@ -404,7 +395,7 @@ function start(content) {
 
             }
         } else {
-            o += "<hr>\n" + p(unit.mst_unit_id + " " + writer_name);
+            o += "<hr/>\n" + p(unit.mst_unit_id + " " + writer_name);
             writer_name = writer_name.replace(/ /g, "_");
 
             o += b("Writer sprites: ");
@@ -470,7 +461,7 @@ function battle(content) {
 }
 
 /** This function displays dual attack quotes and final words if found
-  * @version 1.0.1
+  * @version 1.0.2
   * @since June 19, 2019
   * @param {*} phaseContent The extracted content of a battle phase
   * @returns {string} Parsed and linked VCs of any dual attack quotes and final words found
@@ -486,24 +477,24 @@ function battlePhase(phaseContent) {
             && turn.units[0].voice != null && turn.units[1].voice != null) {
             phase_data += b("Special Dual Attack Quotes: ");
 
-        /* First dual VC */
-        phase_data += br(llink("http://cdn.bungo.dmmgames.com"+ turn.units[0].voice,
-                nameTranslate(writers[turn.units[0].number]) + "_" + nameTranslate(writers[turn.units[1].number]) + "_dual1"));
+            /* First dual VC */
+            phase_data += br(llink("http://cdn.bungo.dmmgames.com" + turn.units[0].voice,
+                nameTranslate(writers[turn.units[0].number]).replace(/ /g, "_") + "_" + nameTranslate(writers[turn.units[1].number]).replace(/ /g, "_") + "_dual1"));
 
-        /* Second dual VC */
-        phase_data += br(llink("http://cdn.bungo.dmmgames.com"+ turn.units[1].voice,
-                nameTranslate(writers[turn.units[0].number]) + "_" + nameTranslate(writers[turn.units[1].number]) + "_dual2"));
+            /* Second dual VC */
+            phase_data += br(llink("http://cdn.bungo.dmmgames.com"+ turn.units[1].voice,
+                nameTranslate(writers[turn.units[0].number]).replace(/ /g, "_") + "_" + nameTranslate(writers[turn.units[1].number]).replace(/ /g, "_") + "_dual2"));
         }
 
-    /* Look for final words */
-    if (turn.defences != null)
-        for (var writer of turn.defences)
-            if (writer.lostVoice != null) {
-                phase_data += b("Final words: ");
+        /* Look for final words */
+        if (turn.defences != null)
+            for (var writer of turn.defences)
+                if (writer.lostVoice != null) {
+                    phase_data += b("Final words: ");
 
-                phase_data += br(llink("http://cdn.bungo.dmmgames.com"+ writer.lostVoice,
-                writers[writer.number] + "_tainted_finalwords"));
-            }
+                    phase_data += br(llink("http://cdn.bungo.dmmgames.com"+ writer.lostVoice,
+                    writers[writer.number] + "_tainted_finalwords"));
+                }
     }
 
     return phase_data;
@@ -700,71 +691,75 @@ function skillTree(content) {
     out.innerHTML = o;
 }
 
-/** This function displays the full 7-day menu in the Dining Hall.
-  * + Return immediately if an empty duplicate request encountered
-  * + Loop through each item of the menu
+/** This function displays all available content in the Dining Hall.
+  * + Check for any playing recollection and display accordingly 
+  * + Otherwise, loop through each item of the menu
   * + Display their day and time of the meal
   * + Parse their icons, images then display their formatted descriptions
-  * @version 1.0
-  * @since N/A
+  * @version 2.0
+  * @since July 17, 2019
   * @param {*} content The content found in the requesting URL
   * @returns N/A
-  * @todo Check if this function outputs Wikia codes
+  * @see diningRecos
+  * @todo Parse the translated meal's name
   */
 function supply(content) {
     json = JSON.parse(content);
 
-    if (json.dinner_menu == null || json.dinner_menu.length == 0)
-        return;
+    if (json.dinner_menu == null || json.dinner_menu == 0) {
+        if (json.dinner)
+            o += (json.dinner.dining_skits) ? diningRecos(json.dinner.dining_skits[0]) : "";
+        else
+            o += diningRecos(json);
+    } else {
+        /** A placeholder for a meal's information */
+        var meal = "";
 
-    /** A placeholder for a meal's information */
-    var meal = "";
-
-    /* Loop through the menu */
-    for (var item of json.dinner_menu) {
-        if (item != null) {
-            o += b(item.name);
-            switch (item.week) {
-                case 0:
-                    meal += "Sunday ";
-                    break;
-                case 1:
-                    meal += "Monday ";
-                    break;
-                case 2:
-                    meal += "Tuesday ";
-                    break;
-                case 3:
-                    meal += "Wednesday ";
-                    break;
-                case 4:
-                    meal += "Thursday ";
-                    break;
-                case 5:
-                    meal += "Friday ";
-                    break;
-                case 6:
-                    meal += "Saturday ";
-                    break;
+        /* Loop through the menu */
+        for (var item of json.dinner_menu) {
+            if (item != null) {
+                o += b(item.name);
+                switch (item.week) {
+                    case 0:
+                        meal += "Sunday ";
+                        break;
+                    case 1:
+                        meal += "Monday ";
+                        break;
+                    case 2:
+                        meal += "Tuesday ";
+                        break;
+                    case 3:
+                        meal += "Wednesday ";
+                        break;
+                    case 4:
+                        meal += "Thursday ";
+                        break;
+                    case 5:
+                        meal += "Friday ";
+                        break;
+                    case 6:
+                        meal += "Saturday ";
+                        break;
+                }
+                switch (item.type) {
+                    case 1:
+                        meal += "Lunch";
+                        break;
+                    case 2:
+                        meal += "Dinner";
+                        break;
+                    case 3:
+                        meal += "Special";
+                        break;
+                }
+                o += br(meal);
+                meal = "";
+                o += br(llink("http://cdn.bungo.dmmgames.com" + item.icon, "icon") + ", " + llink("http://cdn.bungo.dmmgames.com" + item.image, "image"));
+                o += br(item.description.replace(/\\n/g, "<br>"));
             }
-            switch (item.type) {
-                case 1:
-                    meal += "Lunch";
-                    break;
-                case 2:
-                    meal += "Dinner";
-                    break;
-                case 3:
-                    meal += "Special";
-                    break;
-            }
-            o += br(meal);
-            meal = "";
-            o += br(llink("http://cdn.bungo.dmmgames.com" + item.icon, "icon") + ", " + llink("http://cdn.bungo.dmmgames.com" + item.image, "image"));
-            o += br(item.description.replace(/\\n/g, "<br>"));
         }
     }
-
     out.innerHTML = o;
 }
 
@@ -1160,7 +1155,6 @@ function memoriaInfo(info) {
     return memoria_data;
 }
 
-
 /** This function grabs the Chief's VC in paydays.
   * + Parse the month and display a link to the VC
   * @version 1.0
@@ -1307,14 +1301,11 @@ function ringMemoria(content) {
     out.innerHTML = o;
 }
 
-function skitsQuest(content) {
+function delveRecos(content) {
     json = JSON.parse(content);
 
     /* Check for voice paths and prints recollection lines if found */
-    if (json.adv == null || json.adv.length == 0)
-        o += (json.contents == null || json.contents.length == 0) ? newRecos(json) : oldRecos(json);
-    else
-        o += (json.contents == null || json.contents.length == 0) ? newRecos(json.adv[0]) : oldRecos(json.adv[0]);
+    o += (json.adv == null || json.adv == 0) ? "" : recollection(json.adv[0]);
 
 /*************
     if (json.adv == null) {
@@ -1348,125 +1339,198 @@ function skitsQuest(content) {
     out.innerHTML = o;
 }
 
-function skitsMain(content) {
+/** This function collects and displays limited-time recollections playable from the Library.
+  * (Most of these are anniversary but devs decide to laugh at me so they are stored completely differently from most recollections.)
+  * @version 1.0
+  * @since July 17, 2019
+  * @param {any} content The content found in the requesting URL
+  * @return N/A
+  * @see recollection
+  */
+function limitedRecos(content) {
     json = JSON.parse(content);
 
-    if (json.contents == null) {
-        o += b("Recollection Name: ") + json.title;
-        o += br(llink("http://cdn.bungo.dmmgames.com" + json.novelPath, "Recollection text file (save as .zip then extract to .txt)"));
+    o += recollection(json.adv);
+    out.innerHTML = o;
+}
 
-    } else {
-        o += b(json.chapter_title + ": " + json.title);
-        o += b("Voice Paths: ");
-        for (var item of json.voice_paths)
-            o += br(link("http://cdn.bungo.dmmgames.com" + item));
-        o += b("Skit Code: ");
+/** This function collects and displays recollections from the main story.
+  * (Note: The displaying algorithm is similar to that of recollection(), but devs decides
+  * to play around and stuff in unnecessary VCs for extra.)
+  * @version 1.0
+  * @since July 17, 2019
+  * @param {any} content The content found in the requesting URL
+  * @return N/A
+  * @see recollection
+  */
+function mainRecos(content) {
+    json = JSON.parse(content);
+
+    /** Parse reco name */
+    o += b("Main Story Recollection: ") + json.chapter_title + " " + json.title;
+
+    /* Link to the reco file if it is of newer type */
+    if (json.contents == null || json.contents == 0)
+        o += br(llink("http://cdn.bungo.dmmgames.com" + json.novelPath, "Recollection text file (save as .zip then extract to .txt)"));
+    else { /* Older type of recollection */
         for (var item of json.contents) {
-            if (item.serif != "") {
-                o += br("{{Speech<br>|wr = " + nameTranslate(item.talker_name) + "<br>|jp = " + item.serif.replace(/\s/g, "").replace(/n/g, "").replace(/\\/g, "&lt;br&gt;<br>") + "<br>|en = <br>|vo = <br>}}");
-                if (item.select_1 != "" && item.select2 != "") {
-                    o += br("&lt;div class=&#34;shelf-header&#34;&gt;&#39;&#39;&#39;Choice 1&#39;&#39;&#39;&lt;/div&gt;<br>{{Speech<br>|jp = " + item.select_1 + "<br>|en = <br>|vo = <br>}}");
-                    o += br("&lt;div class=&#34;shelf-header&#34;&gt;&#39;&#39;&#39;Choice 1&#39;&#39;&#39;&lt;/div&gt;<br>{{Speech<br>|jp = " + item.select_2 + "<br>|en = <br>|vo = <br>}}");
-                    o += "<br>&lt;hr&gt;";
+            if (item.serif) {
+                /* Check for choice dialogues */
+                if (item.select_1) {
+                    o += br("<code>&lt;div class=&#34;shelf-header&#34;&gt;&#39;&#39;&#39;Choice 1&#39;&#39;&#39;&lt;/div&gt;<br/></code>");
+                    o += "<code>{{Speech<br/></code>";
+                    o += "<code>|jp = " + item.select_1 + "<br/></code>";
+                    o += "<code>|en = <br/></code>";
+                    o += "<code>}}</code>";
+
+                    if (item.select_2) {
+                        o += br("<code>&lt;div class=&#34;shelf-header&#34;&gt;&#39;&#39;&#39;Choice 2&#39;&#39;&#39;&lt;/div&gt;<br/></code>");
+                        o += "<code>{{Speech<br/></code>";
+                        o += "<code>|jp = " + item.select_2 + "<br/></code>";
+                        o += "<code>|en = <br/></code>";
+                        o += "<code>}}</code>";
+                    }
+
+                    o += "<code><br/>&lt;br&sol;&gt;</code>";
+                    continue;
                 }
+
+                o += br("<code>{{Speech<br/></code>");
+                /* Parse the correct speaker name (writer, character or taint) */
+                if (item.talker_name === "侵蝕者")
+                    o += "<code>|taint = <br/></code>";
+                else
+                    o += "<code>|wr = " + ((item.talker_name === "" || item.talker_name == null) ? "" : nameTranslate(item.talker_name)) + "<br/></code>";
+
+                o += "<code>|jp = " + item.serif.replace(/\s/g, "").replace(/\\n/g, "&lt;br&sol;&gt;<br/>") + "<br/></code>";
+                o += "<code>|en = <br/></code>";
+                o += "<code>}}</code>";
             }
         }
+
+        o += "<hr/>";
     }
     out.innerHTML = o;
 }
 
-function skitsDining(content) {
+/** This function collects and displays most recollections played from the Recollections Register.
+ * @version 1.1
+ * @since July 17, 2019
+ * @param {any} content The content found in the requesting URL
+ * @return N/A
+ * @see recollection
+ */
+function registerRecos(content) {
     json = JSON.parse(content);
 
-    if (json.is_birthday) {
-        o += b("Birthday Recollection:<br/>");
+    o += recollection(json);
+    out.innerHTML = o;
+}
+
+/** This function collects and displays recollections played in the Dining Hall.
+  * + Check if it is a birthday recollection and display accordingly
+  * + Otherwise, parse the reco's name and display the content as Wikia codes with link to the VCs
+  * @version 1.0
+  * @since July 17, 2019
+  * @param {any} recoContent The JS section pertaining to the triggered recollection
+  * @return {string} The recollection's available content
+  * @todo Parse the meals from the menu
+  */
+function diningRecos(recoContent) {
+    /** Placeholder containing codes for the recollection */
+    var reco_data = "";
+
+    if (recoContent.is_birthday) {
+        reco_data += b("Birthday Recollection:<br/>");
 
         var wr_name = "";
         var bday_quote = "";
 
-        o += "<code>{{Speech<br/></code>";
+        reco_data += "<code>{{Speech<br/></code>";
 
-        for (var action of json.adv.contents) {
+        for (var action of recoContent.adv.contents)
             if (action.talker_mst_unit_id != null) {
-                wr_name += nameTranslate(action.talker_mst_unit_id);
+                wr_name += nameTranslate(action.talker_mst_unit_id).replace(/ /g, "_");
                 bday_quote += action.serif.replace(/\s/g, "").replace(/\\n/g, "&lt;br&sol;&gt;");
                 break;
             }
-        }
 
-        o += "<code>|wr = " + wr_name + "</code><br/>";
-        o += "<code>|jp = " + bday_quote + "</code><br/>";
-        o += "<code>|vo = " + llink("http://cdn.bungo.dmmgames.com" + json.adv.voice_paths[0], wr_name + "_dininghall_birthday") + "</code><br/><code>}}</code>";
+        reco_data += "<code>|wr = " + wr_name + "</code><br/>";
+        reco_data += "<code>|jp = " + bday_quote + "</code><br/>";
+        reco_data += "<code>|vo = " + llink("http://cdn.bungo.dmmgames.com" + recoContent.adv.voice_paths[0], wr_name + "_dininghall_birthday") + "</code><br/><code>}}</code>";
     } else {
-        o += b("Skit Voice Paths: ");
-        for (var item of json.adv.voice_paths) {
-            o += br(link("http://cdn.bungo.dmmgames.com" + item));
-        }
-        o += b("Speaker Numbers: ");
-        o += item.talker_num + " ";
-        o += b("Skit Code: ");
-        for (var item of json.adv.contents) {
-            if (item.serif != "") {
-                o += br("{{Speech<br>|wr = " + nameTranslate(item.talker_name) + "<br>|jp = " + item.serif.replace(/\s/g, "").replace(/n/g, "&lt;br&gt;<br>").replace(/\\/g, "") + "|en = <br>|vo = <br>}}");
+        reco_data += b("Dining Hall Recollection: ") + recoContent.title;
+
+        var reco_voices = [""];
+
+        for (var item of recoContent.adv.voice_paths)
+            reco_voices.push("http://cdn.bungo.dmmgames.com" + item);
+
+        var vc_order = 1;
+        for (var item of recoContent.adv.contents)
+            if (item.serif) {
+                reco_data += br("<code>{{Speech<br/></code>");
+                reco_data += "<code>|wr = " + nameTranslate(item.talker_name) + "<br/></code>";
+                reco_data += "<code>|jp = " + item.serif.replace(/\s/g, "").replace(/\n/g, "&lt;br&gt;<br/>") + "<br/></code>";
+                reco_data += "<code>|en = <br/></code>";
+                reco_data += "<code>|vo = "+ llink(reco_voices[vc_order++], "Link") + "<br/></code>";
+                reco_data += "<code>}}</code>";
             }
-        }
+
+        reco_data += "<hr/>";
     }
-
-    out.innerHTML = o;
-}
-
-function anniRecos(content) {
-    json = JSON.parse(content);
-
-    o += newRecos(json);
-    out.innerHTML = o;
-}
-
-function oldRecos(recoContent) {
-    /** Placeholder containing codes for the recollection */
-    var reco_data = "";
-
-    if (recoContent.voice_paths != null && recoContent.voice_paths.length != 0) {
-        /** Placeholder array for VC links */
-        var vc_links = [];
-
-        /* Save all collected VCs into one array */
-        for (var item of recoContent.voice_paths)
-            vc_links.push("http://cdn.bungo.dmmgames.com" + item);
-    }
-
-    reco_data += b("Speaker Numbers: ");
-    for (var item of reco_data.contents)
-        reco_data += item.talker_num + " ";
-
-    reco_data += b("Skit Code: ");
-    for (var item of json.adv[0].contents) {
-            if (item.serif != "") {
-                o += br("{{Speech<br>|wr = " + nameTranslate(item.talker_name) + "<br>|jp = " + item.serif.replace(/\s/g, "").replace(/n/g, "").replace(/\\/g, "&lt;br&gt;<br>") + "<br>|en = <br>|vo = <br>}}");
-
-                if (item.select_1 != "" && item.select_2 != "") {
-                    o += br("&lt;div class=&#34;shelf-header&#34;&gt;&#39;&#39;&#39;Choice 1&#39;&#39;&#39;&lt;/div&gt;<br>{{Speech<br>|jp = " + item.select_1 + "<br>|en = <br>|vo = <br>}}");
-                    o += br("&lt;div class=&#34;shelf-header&#34;&gt;&#39;&#39;&#39;Choice 1&#39;&#39;&#39;&lt;/div&gt;<br>{{Speech<br>|jp = " + item.select_2 + "<br>|en = <br>|vo = <br>}}");
-                    o += "<br>&lt;hr&gt;";
-                }
-            }
-        }
 
     return reco_data;
 }
 
-function newRecos(recoContent) {
+/** This function collects the playing recollection's data and either display the content in Wikia codes (if of the older type)
+  * or display the link to its .zip file (if of newer type implemented on November 2018).
+  * @version 2.0
+  * @since July 17, 2019
+  * @param {any} recoContent The JS section pertaining to the triggered recollection
+  * @return {string} The recollection's available content
+  */
+function recollection(recoContent) {
     /** Placeholder containing codes for the recollection */
     var reco_data = "";
 
-    if (recoContent == null)
-        return;
+    /* Newer recollection */
+    if (recoContent.contents == null || recoContent.contents == 0) {
+        /** Parse reco name */
+        reco_data += b("Recollection Name: ") + ((recoContent.chapter_title) ? (recoContent.chapter_title + " ") : "") + recoContent.title;
 
-    /** Parse reco name */
-    reco_data += b("Recollection Name: ") + recoContent.title;
+        /** Link to the reco file */
+        reco_data += br(llink("http://cdn.bungo.dmmgames.com" + recoContent.novelPath, "Recollection text file (save as .zip then extract to .txt)"));
+    } else { /* Older recollection */
+        /* Check for called VCs */
+        if (recoContent.voice_paths != null && recoContent.voice_paths != 0) {
+            /** Placeholder array for VC links */
+            var vc_links = [];
 
-    /** Link to the reco file */
-    reco_data += br(llink("http://cdn.bungo.dmmgames.com" + recoContent.novelPath, "Recollection text file (save as .zip then extract to .txt)"));
+            /* Save all collected VCs into one array */
+            for (var item of recoContent.voice_paths)
+                vc_links.push("http://cdn.bungo.dmmgames.com" + item);
+        }
+
+        /* Display speaking order */
+        reco_data += b("Speaker Numbers: ");
+        for (var item of recoContent.contents)
+            reco_data += item.talker_num + " ";
+
+        /* Display the reco's content as Wikia code */
+        reco_data += b("Skit Code: ");
+        for (var item of recoContent.contents) {
+            if (item.serif != "") {
+                reco_data += br("{{Speech<br>|wr = " + nameTranslate(item.talker_name) + "<br>|jp = " + item.serif.replace(/\s/g, "").replace(/n/g, "").replace(/\\/g, "&lt;br&gt;<br>") + "<br>|en = <br>|vo = <br>}}");
+
+                if (item.select_1 != "" && item.select_2 != "") {
+                    reco_data += br("&lt;div class=&#34;shelf-header&#34;&gt;&#39;&#39;&#39;Choice 1&#39;&#39;&#39;&lt;/div&gt;<br>{{Speech<br>|jp = " + item.select_1 + "<br>|en = <br>|vo = <br>}}");
+                    reco_data += br("&lt;div class=&#34;shelf-header&#34;&gt;&#39;&#39;&#39;Choice 1&#39;&#39;&#39;&lt;/div&gt;<br>{{Speech<br>|jp = " + item.select_2 + "<br>|en = <br>|vo = <br>}}");
+                    reco_data += "<br>&lt;hr&gt;";
+                }
+            }
+        }
+    }
 
     return reco_data;
 }
@@ -1476,7 +1540,7 @@ function newRecos(recoContent) {
  * + Names, IDs and locations: nameTranslate()
  * + Writers' voice IDs: convertVoiceNum()
  * + Taints' names and types: taintTranslate(), isBoss(), taintType()
- * + Drop items' names: dropItemTranslate(), isGear()
+ * + Drop items' names: dropItemTranslate(), isGear(), eventItemTranslate()
  * + Weapons' translation: weaponTranslate()
  * + Books' name translation: bookTranslate()
  */
@@ -1675,8 +1739,8 @@ function nameTranslate(name) {
         case 47:
             return "Masamune Hakuchou";
             break;
-        case "徳富蘆花":
-        case "徳冨蘆花":
+        case "徳富蘆花": /** Spelling used in-game #1 */
+        case "徳冨蘆花": /** Spelling used in-game #2 */
         case 48:
             return "Tokutomi Roka";
             break;
@@ -2092,7 +2156,6 @@ function isBoss(jpName) {
         case "死の渇望":
             return "Longing for Death";
             break;
-
  
         /* "Alice's Adventures in Wonderland" bosses */
         case "封印の護":
@@ -2559,56 +2622,4 @@ function bookTranslate(jpName) {
      * Hence, return the original JP name.
      */
     return jpName;
-}
-
-/** This function converts the number of a month into its name.
-  * @version 1.0
-  * @since July 2, 2019
-  * @param {int} num The month's supposed month number
-  * @returns {string} The month's name, or a placeholder underscore if the number is invalid
-  */
-function monthTranslate(num) {
-    switch (num) {
-        case 1:
-            return "January";
-            break;
-        case 2:
-            return "February";
-            break;
-        case 3:
-            return "March";
-            break;
-        case 4:
-            return "April";
-            break;
-        case 5:
-            return "May";
-            break;
-        case 6:
-            return "June";
-            break;
-        case 7:
-            return "July";
-            break;
-        case 8:
-            return "August";
-            break;
-        case 9:
-            return "September";
-            break;
-        case 10:
-            return "October";
-            break;
-        case 11:
-            return "November";
-            break;
-        case 12:
-            return "December";
-            break;
-    }
-
-    /* At this point, the number was not recognized.
-     * Hence, return a placeholder underscore.
-     */
-    return "_";
 }
