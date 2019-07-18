@@ -1,3 +1,23 @@
+VERSION 2.4
+
+After hours of crying and regressing herself back into sitting in a corner, Iroha's partner finally
+managed to teach her a few new things including:
+
++ New features & improvements:
+  - List all event recollections in a writer's register
+  - Display all old recollections as Wikia codes following the updated Speech template with
+  respective link to each speech dialogue
+  - Provide links to all new recollections' files being played from anywhere except Sealed Library
+  (see "Testing feature")
+  - Database update regarding event names and event points
+
++ Bug fixes:
+  - Correct typo in Roka's name
+  - Blossoming pseudo-stat changes by node may not be updated correctly (main stats were intact)
+
+* Testing feature: Grab recollections being collected or played in the Sealed Library
+
+=======================================================
 VERSION 2.3
 
 Such as hassle to remember collecting things that Iroha does not collect and scrolling through what

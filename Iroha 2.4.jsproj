@@ -68,7 +68,7 @@
     <AppxManifest Include="package.appxmanifest">
       <SubType>Designer</SubType>
     </AppxManifest>
-    <None Include="Iroha 2.3_TemporaryKey.pfx" />
+    <None Include="Iroha 2.4_TemporaryKey.pfx" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Iroha\css\style.css" />

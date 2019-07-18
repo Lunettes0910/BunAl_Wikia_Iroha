@@ -7,12 +7,15 @@ class writerBlossoming {
     pseudoStats = [0, 0, 0, 0, 0];
 
     constructor(id, atk, def, evade, tech, tal, aes, thm, rl) {
-
         this.id = id;
         this.atk = atk;
         this.def = def;
         this.evade = evade;
-        this.pseudoStats = [tech, tal, aes, thm, rl];
+        this.pseudoStats[0] = tech;
+        this.pseudoStats[1] = tal;
+        this.pseudoStats[2] = aes;
+        this.pseudoStats[3] = thm;
+        this.pseudoStats[4] = rl;
     }
 
     updateMainStats(newAtk, newDef, newEvade) {
@@ -22,7 +25,7 @@ class writerBlossoming {
     }
 
     comparePStats(newPStat, pStatNumber) {
-        return newPStat - this.pseudoStats[pStatNumber];
+        return (newPStat - this.pseudoStats[pStatNumber]);
     }
 }
 
@@ -43,33 +46,33 @@ var weekDays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"
 var months = ["", "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
 /** Event names, 3 per line, ordered by ID from the Recollection Register */
-var eventNames = ["", "Purify 'The Five-Storied Pagoda'", "An Encouragement on Learning",
+var eventNames = ["", "Purify &quot;The Five-Storied Pagoda&quot;", "An Encouragement on Learning",
     "Research on Sakaguchi Ango", "Co-Research with Chief Librarian", "An Encouragement of Learning ~Cherry Blossom~",
-    "Research on Arishima Takeo", "Purify 'The Sunless Street'", "Research on Ibuse Masuji",
-    "Co-Research with Chief Librarian 2", "Cafe Royale Bloodbath", "Research on Kawabata Yasunari",
-    "Spooky Summer Nights", "Research on Masamune Hakuchou", "Purify 'Portrait of a Contemporary Student'",
-    "Co-Research with Chief Librarian 3", "", "Mad Tea Party",
-    "Purify 'The Setting Sun'", "", "Co-Research with Chief Librarian 4",
-    "", "Purify 'Notes of a Student Examinee'", "Three-Way Snowball Fight",
-    "", "Aka and Ao's Research on Alchemy", "Research on Yumeno Kyuusaku",
-    "Co-Research with Chief Librarian 5", "The Mad Banquet on All Saint’s Day", "",
-    "Purify 'Snow Country'", "", "",
-    "Aka and Ao's Research on Alchemy 2", "Research on Ogawa Bimei", "An Encouragement of Learning ~Flutter~",
+    "Research on Arishima Takeo", "Purify &quot;The Sunless Street&quot;", "Research on Ibuse Masuji",
+    "Co-Research with Chief Librarian ~Part Two~", "Cafe Royale Bloodbath", "Research on Kawabata Yasunari",
+    "Spooky Summer Nights", "Research on Masamune Hakuchou", "Purify &quot;Portrait of a Contemporary Student&quot;",
+    "Co-Research with Chief Librarian ~Part Three~", "", "Mad Tea Party",
+    "Purify &quot;The Setting Sun&quot;", "", "Co-Research with Chief Librarian ~Part Four~",
+    "", "Purify &quot;Notes of a Student Examinee&quot;", "Three-Way Snowball Fight",
+    "", "Aka and Ao&apos;s Research on Alchemy", "Research on Yumeno Kyuusaku",
+    "Co-Research with Chief Librarian ~Part Five~", "The Mad Banquet on All Saint%apos;s Day", "",
+    "Purify &quot;Snow Country&quot;", "", "",
+    "Aka and Ao&apos;s Research on Alchemy 2", "Research on Ogawa Bimei", "An Encouragement of Learning ~Flutter~",
     "", "", "The Mad Banquet ~Deathday Celebration~",
-    "", "Co-Research with Chief Librarian 6", "",
-    "Research on Naoki Sanjuugo", "Purify 'Towards the Truth'", "",
-    "Summer Daydream", "", "Aka and Ao's Research on Alchemy 3",
-    "Research on Itou Sachio", "", "Co-Research with Chief Librarian 7",
+    "", "Co-Research with Chief Librarian ~Part Six~", "",
+    "Research on Naoki Sanjuugo", "Purify &quot;Towards the Truth&quot;", "",
+    "Summer Daydream", "", "Aka and Ao&apos;s Research on Alchemy 3",
+    "Research on Itou Sachio", "", "Co-Research with Chief Librarian ~Part Seven~",
     "", "Repair the Grimoire of Fate", "Writers and Alchemists",
-    "Purify 'Cuckoo'", "", "Research on Iwano Houmei",
-    "Co-Research with Chief Librarian 8", "Aka and Ao's Research on Alchemy 4", "Research on Yoshii Isamu",
-    "Three-Way Snowball Fight ~Holy Night Campaign", "Purify 'One Hundred People, One Poem Each'", "Co-Research with Chief Librarian 9",
-    "", "Research on Tokutomi Roka", " Aka and Ao's Study on Alchemy ~First Years~",
+    "Purify &quot;Cuckoo&quot;", "", "Research on Iwano Houmei",
+    "Co-Research with Chief Librarian ~Part Eight~", "Aka and Ao&apos;s Research on Alchemy 4", "Research on Yoshii Isamu",
+    "Three-Way Snowball Fight ~Holy Night Campaign~", "Purify &quot;One Hundred People, One Poem Each&quot;", "Co-Research with Chief Librarian ~Part Nine~",
+    "", "Research on Tokutomi Roka", " Aka and Ao&apos;s Study on Alchemy ~First Years~",
     "Daily Life at Cafe Noir", "", "",
-    "", "Co-Research with Chief Librarian 10", "Research on Nakazato Kaizan",
-    "The Green Messenger from Outer Space", "", "Aka and Ao's Study on Alchemy ~Second Years~",
-    "Spring Cleaning Mad Banquet", "", "Co-Research with Chief Librarian 11",
-    "Research on Miki Rofuu", "Purify 'The Moon Over the Mountain'", "",
+    "", "Co-Research with Chief Librarian ~Part Ten~", "Research on Nakazato Kaizan",
+    "The Green Messenger from Outer Space", "", "Aka and Ao&apos;s Study on Alchemy ~Second Years~",
+    "Spring Cleaning Mad Banquet", "", "Co-Research with Chief Librarian ~Part Eleven~",
+    "Research on Miki Rofuu", "Purify &quot;The Moon Over the Mountain&quot;", "",
     "", "Blood Oath Mad Banquet", "",
     "Co-Research with Chief Librarian ~Part Twelve~"
 ];
@@ -83,6 +86,9 @@ var o = "";
 /** Writers' deck placeholder for in-delve checks */
 var writers = ["", "", "", ""];
 
+/** Writers' stats placeholder for blossoming checks */
+var writerKaika = new writerBlossoming(0, 0, 0, 0, 0, 0, 0, 0, 0);
+
 /* ----------------------- UI IMPLEMENTATION AND DISPLAYS -----------------------
  * 
  * + Listener to the browser's activities
@@ -95,7 +101,7 @@ var writers = ["", "", "", ""];
  *      - Ensouled Book Delve: ensouledDelveVoice(), ensouledTransmigratedVoice()
  *      - Blossoming: skillTree()
  *      - Dining Hall: supply()
- *      - Recollections: skitMain(), skitQuest(), skitDining() - WIP/TBA
+ *      - Recollections: limitedRecos(), delveRecos(), mainRecos(), registerRecos(), recollection()
  *      - Writers' Register: album()
  * 
  * + Newer features (added post-release):
@@ -170,7 +176,7 @@ function (request) {
                 }
                 else if (endpt[1].includes("skill_tree")) {             /* Blossoming */
                     if (endpt[1].includes("page/skill_tree"))
-                        var writerKaika = new writerBlossoming(0, 0, 0, 0, 0, 0, 0, 0, 0);
+                        writerKaika = new writerBlossoming(0, 0, 0, 0, 0, 0, 0, 0, 0);
 
                     request.getContent(skillTree);
                 }
@@ -350,7 +356,7 @@ function voiceImmediate(content) {
   * + Check for voice paths for recollections at the start of the delve
   * + Store the delving writers to a global array
   * + Display all sprites and VCs from new writers and new materials from ring-equipped writers
-  * @version 1.2
+  * @version 1.3
   * @since June 17, 2019
   * @param {*} content The content found in the requesting URL
   * @returns N/A
@@ -365,7 +371,7 @@ function start(content) {
     /* Tainted Book's name */
     o += b("Tainted Book:<br/><i>" + bookTranslate(json.stage.name) + "</i>");
 
-    /* Check for voice paths and prints recollection lines if found */
+    /* Grab the goddamn recollection if found */
     o += (json.adv == null || json.adv.length == 0) ? "" : recollection(json.adv[0]);
 
     /** A placeholder for parsing the writer's name to the images */
@@ -419,7 +425,8 @@ function start(content) {
   * + Print the Taints' information (with translated names) if encountered
   * + Search and print special dual attack quotes and final words if found
   * + Print the items collected (with translated names)
-  * @version 2.0.1
+  * + Display the recollection if it plays after purification
+  * @version 2.1
   * @since June 19, 2019
   * @param {*} content The content found in the requesting URL
   * @returns N/A
@@ -456,6 +463,9 @@ function battle(content) {
         o += b("Drop: ");
         o += br(llink("http://cdn.bungo.dmmgames.com" + json.mstMaterial.img_path, dropItemTranslate(json.mstMaterial.name) + " x" + json.countMaterial));
     }
+
+    /* Grab the goddamn recollection if found */
+    o += (json.adv == null || json.adv.length == 0) ? "" : recollection(json.adv[0]);
 
     out.innerHTML = o;
 }
@@ -651,41 +661,40 @@ function skillTree(content) {
         /** Look for the correct stat change */
         for (i = 0; i < PSEUDO_STAT_COUNT; i++) {
             statChange = writerKaika.comparePStats(newPStats[i], i);
-            if (statChange == 0)
-                pStatNum++;
-            else
+
+            /** Only show stat change if the unlocked node is a stat node */
+            if (statChange === 0)
+                ++pStatNum;
+            else {
+                o += b("Stats change:");
+
+                switch (pStatNum) {
+                    case 0:
+                        o += "<br/><b><i>TECH + ";
+                        break;
+                    case 1:
+                        o += "<br/><b><i>TAL + ";
+                        break;
+                    case 2:
+                        o += "<br/><b><i>AES + ";
+                        break;
+                    case 3:
+                        o += "<br/><b><i>THM + ";
+                        break;
+                    case 4:
+                        o += "<br/><b><i>RL + ";
+                        break;
+                }
+
+                o += statChange + "</i></b>";
+                o += "<br/><code>| " + (((json.unit.atk - writerKaika.atk) == 0) ? "" : (json.unit.atk - writerKaika.atk)) + " || " + (((json.unit.def - writerKaika.def) == 0) ? "" : (json.unit.def - writerKaika.def)) + " || " + (((json.unit.avd - writerKaika.evade) == 0) ? "" : (json.unit.avd - writerKaika.evade)) + "</code>";
+
                 break;
+                }
         }
 
-        /** Only show stat change if the unlocked node is a stat node */
-        if (statChange > 0) {
-            o += b("Stats change:");
-
-            switch (pStatNum) {
-                case 0:
-                    o += "<br/><b><i>TECH + ";
-                    break;
-                case 1:
-                    o += "<br/><b><i>TAL + ";
-                    break;
-                case 2:
-                    o += "<br/><b><i>AES + ";
-                    break;
-                case 3:
-                    o += "<br/><b><i>THM + ";
-                    break;
-                case 4:
-                    o += "<br/><b><i>RL + ";
-                    break;
-            }
-
-            o += statChange + "</i></b>";
-
-            o += "<br/><code>| " + (((json.unit.atk - writerKaika.atk) == 0) ? "" : (json.unit.atk - writerKaika.atk)) + " || " + (((json.unit.def - writerKaika.def) == 0) ? "" : (json.unit.def - writerKaika.def)) + " || " + (((json.unit.avd - writerKaika.evade) == 0) ? "" : (json.unit.avd - writerKaika.evade)) + "</code>";
-
-            /* Update the writer's kaika before processing a new blossoming */
-            writerKaika.updateMainStats(json.unit.atk, json.unit.def, json.unit.avd, json.unit.base_tech, json.unit.base_genius, json.unit.base_beauty, json.unit.base_theme, json.unit.base_truth);
-        }
+        /* Update the writer's kaika before processing a new blossoming */
+        writerKaika.updateMainStats(json.unit.atk, json.unit.def, json.unit.avd, json.unit.base_tech, json.unit.base_genius, json.unit.base_beauty, json.unit.base_theme, json.unit.base_truth);
     }
 
     out.innerHTML = o;
@@ -1301,44 +1310,6 @@ function ringMemoria(content) {
     out.innerHTML = o;
 }
 
-function delveRecos(content) {
-    json = JSON.parse(content);
-
-    /* Check for voice paths and prints recollection lines if found */
-    o += (json.adv == null || json.adv == 0) ? "" : recollection(json.adv[0]);
-
-/*************
-    if (json.adv == null) {
-        if (json.contents == null || json.contents.length == 0)
-            o += newRecos(json);
-
-        else {
-            o += b("Skit Voice Paths: ");
-            for (var item of json.voice_paths) {
-                o += br(link("http://cdn.bungo.dmmgames.com" + item));
-            }
-
-            o += b("Speaker Numbers: ");
-            for (var item of json.contents) {
-                if (item.serif != "") {
-                    o += item.talker_num + " ";
-                }
-            }
-
-            o += b("Code: ")
-            for (var item of json.contents) {
-                if (item.serif != "") {
-                    o += br("{{Speech" + "<br>" + "|wr = " + nameTranslate(item.talker_name) + "<br>" + "|jp = " + item.serif.replace(/\s/g, "").replace(/n/g, "&lt;br&gt;<br>").replace(/\\/g, "") + "<br>" + "|en = " + "<br>|vo = <br>}}");
-                }
-            }
-        }
-    } else
-        o += o += b("Event ") + newRecos(json.adv);
-*/
-
-    out.innerHTML = o;
-}
-
 /** This function collects and displays limited-time recollections playable from the Library.
   * (Most of these are anniversary but devs decide to laugh at me so they are stored completely differently from most recollections.)
   * @version 1.0
@@ -1354,11 +1325,43 @@ function limitedRecos(content) {
     out.innerHTML = o;
 }
 
-/** This function collects and displays recollections from the main story.
-  * (Note: The displaying algorithm is similar to that of recollection(), but devs decides
-  * to play around and stuff in unnecessary VCs for extra.)
+/** This function collects and displays recollections playable from the event page.
+  * (Another example of why I hate devs)
   * @version 1.0
   * @since July 17, 2019
+  * @param {any} content The content found in the requesting URL
+  * @return N/A
+  * @see recollection
+  */
+function delveRecos(content) {
+    json = JSON.parse(content);
+
+    /* Check for voice paths and prints recollection lines if found */
+    o += (json.adv == null || json.adv == 0) ? "" : recollection(json.adv[0]);
+
+    out.innerHTML = o;
+}
+
+/** This function collects and displays most recollections played from the Recollections Register.
+  * (Yet another example of why I hate devs.)
+  * @version 1.1
+  * @since July 17, 2019
+  * @param {any} content The content found in the requesting URL
+  * @return N/A
+  * @see recollection
+  */
+function registerRecos(content) {
+    json = JSON.parse(content);
+
+    o += recollection(json);
+    out.innerHTML = o;
+}
+
+/** This function collects and displays recollections from the main story.
+  * (Note: The displaying algorithm is similar to that of recollection(), but devs decides to
+  * play around and stuff in unnecessary VCs for extra, while main story is not voiced at all.)
+  * @version 1.0.3
+  * @since July 18, 2019
   * @param {any} content The content found in the requesting URL
   * @return N/A
   * @see recollection
@@ -1375,6 +1378,18 @@ function mainRecos(content) {
     else { /* Older type of recollection */
         for (var item of json.contents) {
             if (item.serif) {
+                o += br("<code>{{Speech<br/></code>");
+
+                /* Parse the correct speaker name (writer, character or taint) */
+                if (item.talker_name === "侵蝕者")
+                    o += "<code>|taint = <br/></code>";
+                else
+                    o += (item.talker_name === "" || item.talker_name == null) ? "" : ("<code>|wr = " + nameTranslate(item.talker_name) + "<br/></code>");
+
+                o += "<code>|jp = " + item.serif.replace(/\s/g, "").replace(/\\n/g, "&lt;br&sol;&gt;") + "<br/></code>";
+                o += "<code>|en = <br/></code>";
+                o += "<code>}}</code>";
+
                 /* Check for choice dialogues */
                 if (item.select_1) {
                     o += br("<code>&lt;div class=&#34;shelf-header&#34;&gt;&#39;&#39;&#39;Choice 1&#39;&#39;&#39;&lt;/div&gt;<br/></code>");
@@ -1388,42 +1403,16 @@ function mainRecos(content) {
                         o += "<code>{{Speech<br/></code>";
                         o += "<code>|jp = " + item.select_2 + "<br/></code>";
                         o += "<code>|en = <br/></code>";
-                        o += "<code>}}</code>";
+                        o += "<code>}}<br/></code>";
                     }
 
-                    o += "<code><br/>&lt;br&sol;&gt;</code>";
-                    continue;
+                    o += "<code>&lt;br&sol;&gt;</code>";
                 }
-
-                o += br("<code>{{Speech<br/></code>");
-                /* Parse the correct speaker name (writer, character or taint) */
-                if (item.talker_name === "侵蝕者")
-                    o += "<code>|taint = <br/></code>";
-                else
-                    o += "<code>|wr = " + ((item.talker_name === "" || item.talker_name == null) ? "" : nameTranslate(item.talker_name)) + "<br/></code>";
-
-                o += "<code>|jp = " + item.serif.replace(/\s/g, "").replace(/\\n/g, "&lt;br&sol;&gt;<br/>") + "<br/></code>";
-                o += "<code>|en = <br/></code>";
-                o += "<code>}}</code>";
             }
         }
 
         o += "<hr/>";
     }
-    out.innerHTML = o;
-}
-
-/** This function collects and displays most recollections played from the Recollections Register.
- * @version 1.1
- * @since July 17, 2019
- * @param {any} content The content found in the requesting URL
- * @return N/A
- * @see recollection
- */
-function registerRecos(content) {
-    json = JSON.parse(content);
-
-    o += recollection(json);
     out.innerHTML = o;
 }
 
@@ -1440,6 +1429,7 @@ function diningRecos(recoContent) {
     /** Placeholder containing codes for the recollection */
     var reco_data = "";
 
+    /* Display if it is a birthday reco or conversation reco */
     if (recoContent.is_birthday) {
         reco_data += b("Birthday Recollection:<br/>");
 
@@ -1461,12 +1451,16 @@ function diningRecos(recoContent) {
     } else {
         reco_data += b("Dining Hall Recollection: ") + recoContent.title;
 
+        /** Placeholder for all links to the reco's VCs */
         var reco_voices = [""];
 
         for (var item of recoContent.adv.voice_paths)
             reco_voices.push("http://cdn.bungo.dmmgames.com" + item);
 
+        /** A counter for linking VC */
         var vc_order = 1;
+
+        /* Display the dialogue */
         for (var item of recoContent.adv.contents)
             if (item.serif) {
                 reco_data += br("<code>{{Speech<br/></code>");
@@ -1485,8 +1479,8 @@ function diningRecos(recoContent) {
 
 /** This function collects the playing recollection's data and either display the content in Wikia codes (if of the older type)
   * or display the link to its .zip file (if of newer type implemented on November 2018).
-  * @version 2.0
-  * @since July 17, 2019
+  * @version 2.1.3
+  * @since July 18, 2019
   * @param {any} recoContent The JS section pertaining to the triggered recollection
   * @return {string} The recollection's available content
   */
@@ -1494,42 +1488,69 @@ function recollection(recoContent) {
     /** Placeholder containing codes for the recollection */
     var reco_data = "";
 
+    /* Parse reco name */
+    reco_data += b("Recollection Name: ") + ((recoContent.chapter_title) ? (recoContent.chapter_title + " ") : "") + recoContent.title;
+
     /* Newer recollection */
-    if (recoContent.contents == null || recoContent.contents == 0) {
-        /** Parse reco name */
-        reco_data += b("Recollection Name: ") + ((recoContent.chapter_title) ? (recoContent.chapter_title + " ") : "") + recoContent.title;
-
-        /** Link to the reco file */
+    if (recoContent.contents == null || recoContent.contents == 0)
+        /* Link to the reco file */
         reco_data += br(llink("http://cdn.bungo.dmmgames.com" + recoContent.novelPath, "Recollection text file (save as .zip then extract to .txt)"));
-    } else { /* Older recollection */
+    else { /* Older recollection */
         /* Check for called VCs */
-        if (recoContent.voice_paths != null && recoContent.voice_paths != 0) {
-            /** Placeholder array for VC links */
-            var vc_links = [];
 
-            /* Save all collected VCs into one array */
+        /** Placeholder for all reco's VC links */
+        var reco_voices = [""];
+
+        /** A counter for linking VC */
+        var vc_order = 1;
+
+        /* Store all VC links if the reco is voiced */
+        if (recoContent.voice_paths != null && recoContent.voice_paths != 0)
             for (var item of recoContent.voice_paths)
-                vc_links.push("http://cdn.bungo.dmmgames.com" + item);
-        }
-
-        /* Display speaking order */
-        reco_data += b("Speaker Numbers: ");
-        for (var item of recoContent.contents)
-            reco_data += item.talker_num + " ";
+                reco_voices.push("http://cdn.bungo.dmmgames.com" + item);
 
         /* Display the reco's content as Wikia code */
-        reco_data += b("Skit Code: ");
         for (var item of recoContent.contents) {
-            if (item.serif != "") {
-                reco_data += br("{{Speech<br>|wr = " + nameTranslate(item.talker_name) + "<br>|jp = " + item.serif.replace(/\s/g, "").replace(/n/g, "").replace(/\\/g, "&lt;br&gt;<br>") + "<br>|en = <br>|vo = <br>}}");
+            if (item.serif) {
+                reco_data += br("<code>{{Speech<br/></code>");
 
-                if (item.select_1 != "" && item.select_2 != "") {
-                    reco_data += br("&lt;div class=&#34;shelf-header&#34;&gt;&#39;&#39;&#39;Choice 1&#39;&#39;&#39;&lt;/div&gt;<br>{{Speech<br>|jp = " + item.select_1 + "<br>|en = <br>|vo = <br>}}");
-                    reco_data += br("&lt;div class=&#34;shelf-header&#34;&gt;&#39;&#39;&#39;Choice 1&#39;&#39;&#39;&lt;/div&gt;<br>{{Speech<br>|jp = " + item.select_2 + "<br>|en = <br>|vo = <br>}}");
-                    reco_data += "<br>&lt;hr&gt;";
+                /* Parse the correct speaker name (writer, character or taint) */
+                if (item.talker_name === "侵蝕者")
+                    reco_data += "<code>|taint = <br/></code>";
+                else
+                    reco_data += (item.talker_name === "" || item.talker_name == null) ? "" : ("<code>|wr = " + nameTranslate(item.talker_name) + "<br/></code>");
+
+                reco_data += "<code>|jp = " + item.serif.replace(/\s/g, "").replace(/\\n/g, "&lt;br&sol;&gt;") + "<br/></code>";
+                reco_data += "<code>|en = <br/></code>";
+
+                /* Link to the VC if the reco is voiced */
+                if (recoContent.voice_paths != null && recoContent.voice_paths != 0)
+                    reco_data += "<code>|vo = " + llink(reco_voices[vc_order++], "Link") + "<br/></code>";
+
+                reco_data += "<code>}}</code>";
+
+                /* Check for choice dialogues */
+                if (item.select_1) {
+                    reco_data += br("<code>&lt;div class=&#34;shelf-header&#34;&gt;&#39;&#39;&#39;Choice 1&#39;&#39;&#39;&lt;/div&gt;<br/></code>");
+                    reco_data += "<code>{{Speech<br/></code>";
+                    reco_data += "<code>|jp = " + item.select_1 + "<br/></code>";
+                    reco_data += "<code>|en = <br/></code>";
+                    reco_data += "<code>}}</code>";
+
+                    if (item.select_2) {
+                        reco_data += br("<code>&lt;div class=&#34;shelf-header&#34;&gt;&#39;&#39;&#39;Choice 2&#39;&#39;&#39;&lt;/div&gt;<br/></code>");
+                        reco_data += "<code>{{Speech<br/></code>";
+                        reco_data += "<code>|jp = " + item.select_2 + "<br/></code>";
+                        reco_data += "<code>|en = <br/></code>";
+                        reco_data += "<code>}}<br/></code>";
+                    }
+
+                    reco_data += "<code>&lt;br&sol;&gt;</code>";
                 }
             }
         }
+
+        reco_data += "<hr/>";
     }
 
     return reco_data;
@@ -2444,11 +2465,11 @@ function eventItemTranslate(jpName) {
 /** This function converts the name of a book into English.
   * + Translate the item's name into English if it is one of the books listed
   * in the function.
-  * @version 1.0
-  * @since June 19, 2019
+  * @version 1.0.1
+  * @since July 18, 2019
   * @param {string} jpName The item's Japanese name
   * @returns {string} The item's translated name (if found), or its Japanese name unchanged
-  * @todo Figure out how to translate books from Sealed Library
+  * @todo Figure out how to translate books from Sealed Library and get to display it
   */
 function bookTranslate(jpName) {
     switch (jpName) {
@@ -2615,6 +2636,11 @@ function bookTranslate(jpName) {
             break;
         case "浮雲":
             return "CHI-3 - The Drifting Cloud";
+            break;
+
+        /* Sealed Library */
+        case "不思議の国のアリス四":
+            return "A-series - Alice's Adventures in Wonderland";
             break;
     }
 

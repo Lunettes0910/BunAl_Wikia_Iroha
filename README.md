@@ -1,11 +1,11 @@
 # *Iroha*
 #### To-do list
+* [ ] Unzip v2 recollection files into text files
 * [x] Parse and display v1 recollections as Wikia codes
-* [ ] Update all recollection-related functions
+* [x] Update all recollection-related functions
 * [x] List all event recollections for each Writer's Register entry correctly
 
 * ***Suggestions:***
-    * [ ] Unzip v2 recollection files into text files
     * [ ] ~~Translate the extracted v2 recollection file into Wikia codes~~
         * ~~*A JavaScript compiler is needed here?*~~
     * [ ] A menu that allows which function of Iroha to stop working (e.g. stop grabbing dining menu repeatedly)
@@ -16,8 +16,8 @@
     - [ ] Blossoming: Unlocked node names *might* show up incorrectly when unlocking more than one node at a time
 
 ## About
-* ***Latest released version:*** 2.3
-* ***Testing version:*** 2.4
+* ***Latest released version:*** 2.4
+* ***Testing version:*** 2.4.1
 
 This project is a small extension used to collect materials and data from the Japanese browser game *Bungo to Alchemist* (lit. *Writers and Alchemists*). The plugin was written to support the maintenance and update of [the game's Wikia](https://bungo.fandom.com) and has been passed down among the Wikia's staff.
 
