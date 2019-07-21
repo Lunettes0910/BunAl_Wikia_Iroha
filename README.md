@@ -12,8 +12,8 @@
     * For other smaller suggestions that might be handled sideline, check the project's plan [here](https://github.com/users/MinhNTran-1227/projects/3)
 
 * ***Bugs:***
-    - [X] Memoria: Non-writer characters featured in memoria cards are displayed with untranslated names
-    - [ ] Blossoming: Unlocked node names *might* show up incorrectly when unlocking more than one node at a time
+    - [X] Blossoming: Unlocked node names *might* show up incorrectly when unlocking more than one node at a time
+    - [X] Memoria: Lvl3 image and description from lvl2 memorias are not shown
 
 ## About
 * ***Latest released version:*** 2.4

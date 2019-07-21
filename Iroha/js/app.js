@@ -1072,8 +1072,8 @@ function memoria(content) {
 
     /* Check for link to max art and max description */
     if (json.card.level == 2) {
-        o += br(llink("http://cdn.bungo.dmmgames.com" + json.card.next_level_card_image, "Lv3 Card Image"));
-        o += br("Lv3 Description: " + json.card.next_level_status_description);
+        o += br(llink("http://cdn.bungo.dmmgames.com" + json.next_level_card_image, "Lv3 Card Image"));
+        o += br("Lv3 Description: " + json.next_level_status_description);
     }
 
     out.innerHTML = o;
