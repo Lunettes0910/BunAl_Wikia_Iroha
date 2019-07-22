@@ -1,7 +1,7 @@
 VERSION 2.4.1
 
 + New features & improvements:
-  - Display the dining menu as Wikia code
+  - Display the dining menu as Wikia code belonging to the Menu template
 
 + Bug fixes:
   - Dining recollections are not grabbed when triggered in the Dining Hall

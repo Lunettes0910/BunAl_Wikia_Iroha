@@ -785,7 +785,7 @@ function supply(content) {
                         o += "<code>|special_en = <br/></code>";
                         o += "<code>|special_desc_jp = " + item.description.replace(/\\n/g, "&lt;br&sol;&gt;") + "<br/></code>";
                         o += "<code>|special_desc_en = <br/></code>";
-                        o += "<code>|special_reco = </code>";
+                        o += "<code>|special_reco =</code>";
                         break;
                 }
 

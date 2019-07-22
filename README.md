@@ -1,16 +1,14 @@
 # *Iroha*
 #### To-do list
 * [ ] Unzip v2 recollection files into text files
+* [ ] Translate the extracted v2 recollection file into Wikia codes
+  * A JavaScript compiler is needed here?
 
 * ***Suggestions:***
-    * [ ] ~~Translate the extracted v2 recollection file into Wikia codes~~
-        * ~~*A JavaScript compiler is needed here?*~~
     * [ ] A menu that allows which function of Iroha to stop working (e.g. stop grabbing dining menu repeatedly)
     * For other smaller suggestions that might be handled sideline, check the project's plan [here](https://github.com/users/MinhNTran-1227/projects/3)
 
 * ***Bugs:***
-    - [X] Blossoming: Unlocked node names *might* show up incorrectly when unlocking more than one node at a time
-    - [X] Memoria: Lvl3 image and description from lvl2 memorias are not shown
     - [X] Dining Hall: Dining recollections are not grabbed when triggered in the Dining Hall
 
 ## About
