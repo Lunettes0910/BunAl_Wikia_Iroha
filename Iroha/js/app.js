@@ -127,7 +127,6 @@ function (request) {
     if (endpt !== null) {
         switch (endpt[1]) {
             /* Immediate VC requests for Dining Hall and assistant change */
-            case "units/supply":
             case "assistant_change":
                 request.getContent(voiceImmediate);
                 break;
@@ -701,12 +700,13 @@ function skillTree(content) {
 }
 
 /** This function displays all available content in the Dining Hall.
-  * + Check for any playing recollection and display accordingly 
+  * + Check for any playing recollection and display accordingly
+  * + Grab the VC played while feeding the authors
   * + Otherwise, loop through each item of the menu
   * + Display their day and time of the meal
   * + Parse their icons, images then display their formatted descriptions
-  * @version 2.0
-  * @since July 17, 2019
+  * @version 2.1
+  * @since July 22, 2019
   * @param {*} content The content found in the requesting URL
   * @returns N/A
   * @see diningRecos
@@ -715,19 +715,25 @@ function skillTree(content) {
 function supply(content) {
     json = JSON.parse(content);
 
+    /* Check if the request contains a menu */    
     if (json.dinner_menu == null || json.dinner_menu == 0) {
-        if (json.dinner)
-            o += (json.dinner.dining_skits) ? diningRecos(json.dinner.dining_skits[0]) : "";
-        else
+        /* Check if the request is to feed the authors */
+        if (json.dinner) {
+            /* If there is no dining reco, display the dining VC */
+            if (json.dinner.dining_skits == null || json.dinner.dining_skits == 0) {
+                voiceImmediate(content);
+                return;
+            } else /* Otherwise, display the reco */
+                o += diningRecos(json.dinner.dining_skits[0]);
+        } else /* At this point, the request was played from the Recollection Register */
             o += diningRecos(json);
     } else {
         /** A placeholder for a meal's information */
         var meal = "";
 
         /* Loop through the menu */
-        for (var item of json.dinner_menu) {
+        for (var item of json.dinner_menu)
             if (item != null) {
-                o += b(item.name);
                 switch (item.week) {
                     case 0:
                         meal += "Sunday ";
@@ -754,20 +760,41 @@ function supply(content) {
                 switch (item.type) {
                     case 1:
                         meal += "Lunch";
+                        o += b("<i>" + meal + "</i><br/>");
+                        o += "<code>|lunch_jp = " + item.name + "<br/></code>";
+                        o += "<code>|lunch_en = <br/></code>";
+                        o += "<code>|lunch_desc_jp = " + item.description.replace(/\\n/g, "&lt;br&sol;&gt;") + "<br/></code>";
+                        o += "<code>|lunch_desc_en = <br/></code>";
+                        o += "<code>|lunch_reco = </code>";
                         break;
+
                     case 2:
                         meal += "Dinner";
+                        o += b("<i>" + meal + "</i><br/>");
+                        o += "<code>|dinner_jp = " + item.name + "<br/></code>";
+                        o += "<code>|dinner_en = <br/></code>";
+                        o += "<code>|dinner_desc_jp = " + item.description.replace(/\\n/g, "&lt;br&sol;&gt;") + "<br/></code>";
+                        o += "<code>|dinner_desc_en = <br/></code>";
+                        o += "<code>|dinner_reco = </code>";
                         break;
+
                     case 3:
                         meal += "Special";
+                        o += b("<i>" + meal + "</i><br/>");
+                        o += "<code>|special_jp = " + item.name + "<br/></code>";
+                        o += "<code>|special_en = <br/></code>";
+                        o += "<code>|special_desc_jp = " + item.description.replace(/\\n/g, "&lt;br&sol;&gt;") + "<br/></code>";
+                        o += "<code>|special_desc_en = <br/></code>";
+                        o += "<code>|special_reco = </code>";
                         break;
                 }
-                o += br(meal);
+
                 meal = "";
-                o += br(llink("http://cdn.bungo.dmmgames.com" + item.icon, "icon") + ", " + llink("http://cdn.bungo.dmmgames.com" + item.image, "image"));
-                o += br(item.description.replace(/\\n/g, "<br>"));
+                o += br(llink("http://cdn.bungo.dmmgames.com" + item.icon, "Meal icon"));
+                o += br(llink("http://cdn.bungo.dmmgames.com" + item.image, "Meal image"));
             }
-        }
+
+        o += "<hr/>";
     }
     out.innerHTML = o;
 }
@@ -1449,7 +1476,13 @@ function diningRecos(recoContent) {
         reco_data += "<code>|jp = " + bday_quote + "</code><br/>";
         reco_data += "<code>|vo = " + llink("http://cdn.bungo.dmmgames.com" + recoContent.adv.voice_paths[0], wr_name + "_dininghall_birthday") + "</code><br/><code>}}</code>";
     } else {
-        reco_data += b("Dining Hall Recollection: ") + recoContent.title;
+        /** Placeholder for splitting the meal name from reco's number */
+        var reco_name = recoContent.title.split(/[０-９]/g);
+
+        /** Placeholder for any numbering in the reco's name */
+        var reco_number = recoContent.title.substr(reco_name[0].length, recoContent.title.length - reco_name[0].length);
+
+        reco_data += b("Dining Hall Recollection: ") + mealTranslate(reco_name[0]) + ((reco_number) ? (" " + reco_number) : "");
 
         /** Placeholder for all links to the reco's VCs */
         var reco_voices = [""];
@@ -1465,7 +1498,7 @@ function diningRecos(recoContent) {
             if (item.serif) {
                 reco_data += br("<code>{{Speech<br/></code>");
                 reco_data += "<code>|wr = " + nameTranslate(item.talker_name) + "<br/></code>";
-                reco_data += "<code>|jp = " + item.serif.replace(/\s/g, "").replace(/\n/g, "&lt;br&gt;<br/>") + "<br/></code>";
+                reco_data += "<code>|jp = " + item.serif.replace(/\s/g, "").replace(/\\n/g, "&lt;br&sol;&gt;") + "<br/></code>";
                 reco_data += "<code>|en = <br/></code>";
                 reco_data += "<code>|vo = "+ llink(reco_voices[vc_order++], "Link") + "<br/></code>";
                 reco_data += "<code>}}</code>";
@@ -2648,4 +2681,130 @@ function bookTranslate(jpName) {
      * Hence, return the original JP name.
      */
     return jpName;
+}
+
+/** This function converts the name of a meal into English.
+  * + Translate the item's name into English if it is one of the meals listed
+  * in the function.
+  * @version 1.0
+  * @since July 22, 2019
+  * @param {string} jpName The meal's Japanese name
+  * @returns {string} The item's translated name (if found), or its Japanese name unchanged
+  */
+function mealTranslate(jpName) { 
+    switch (jpName) {
+        /*---------- REGULAR ----------*/
+
+        /* Monday */
+        case "オムレツ":
+            return "Omelette";
+            break;
+        case "ビフテキ":
+            return "Beef Steak";
+            break;
+        case "汁粉":
+            return "Red Bean Soup";
+            break;
+
+        /* Tuesday */
+        case "天ぷらそば":
+            return "Tempura Soba";
+            break;
+        case "若鶏の唐揚げ":
+            return "Chicken Karaage";
+            break;
+        case "牛タンの塩ゆで":
+            return "Boiled Beef Tongue";
+            break;
+
+        /* Wednesday */
+        case "牛めし":
+            return "Beef Bowl";
+            break;
+        case "カレイの煮付け":
+            return "Stewed Flounder";
+            break;
+        case "饅頭":
+            return "Manjuu";
+            break;
+
+        /* Thursday */
+        case "カツ丼":
+            return "Cutlet Bowl";
+            break;
+        case "ライスカレー":
+            return "Curry Rice";
+            break;
+        case "カニのコロッケ":
+            return "Crab Croquette";
+            break;
+
+        /* Friday */
+        case "きつねうどん":
+            return "Kitsune Udon";
+            break;
+        case "鯖の照焼":
+            return "Mackerel Teriyaki";
+            break;
+        case "あんぱん":
+            return "Anpan";
+            break;
+
+        /* Saturday */
+        case "焼き鮭定食":
+            return "Grilled Salmon Meal";
+            break;
+        case "うな重":
+            return "Broiled Eel Box";
+            break;
+        case "カツサンド":
+            return "Cutlet Sandwich";
+            break;
+
+        /* Sunday */
+        case "ハムサラダ":
+            return "Ham Salad";
+            break;
+        case "牛鍋":
+            return "Beef Hotpot";
+            break;
+        case "あんこう鍋":
+            return "Monkfish Hotpot";
+            break;
+
+        /*---------- SUMMER ----------*/
+
+        /* Tuesday special */
+        case "かき氷":
+            return "Shaved Ice";
+            break;
+
+        /* Wednesday special */
+        case "カステラ":
+            return "Castella";
+            break;
+
+        /* Friday dinner */
+        case "鰤の照焼":
+            return "Amberjack Teriyaki";
+            break;
+
+        /* Saturday special */
+        case "アイスクリーム ":
+            return "Ice Cream";
+            break;
+
+        /* Sunday dinner */
+        case "檸檬ゼリー":
+            return "Lemon Jelly";
+            break;
+
+        /* Sunday special */
+        case "水羊羹":
+            return "Red Bean Jelly";
+            break;
+
+        default:
+            return jpName;
+    }
 }

@@ -1,3 +1,12 @@
+VERSION 2.4.1
+
++ New features & improvements:
+  - Display the dining menu as Wikia code
+
++ Bug fixes:
+  - Dining recollections are not grabbed when triggered in the Dining Hall
+
+=======================================================
 VERSION 2.4
 
 After hours of crying and regressing herself back into sitting in a corner, Iroha's partner finally

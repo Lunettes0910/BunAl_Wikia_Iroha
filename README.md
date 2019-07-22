@@ -1,9 +1,6 @@
 # *Iroha*
 #### To-do list
 * [ ] Unzip v2 recollection files into text files
-* [x] Parse and display v1 recollections as Wikia codes
-* [x] Update all recollection-related functions
-* [x] List all event recollections for each Writer's Register entry correctly
 
 * ***Suggestions:***
     * [ ] ~~Translate the extracted v2 recollection file into Wikia codes~~
@@ -14,6 +11,7 @@
 * ***Bugs:***
     - [X] Blossoming: Unlocked node names *might* show up incorrectly when unlocking more than one node at a time
     - [X] Memoria: Lvl3 image and description from lvl2 memorias are not shown
+    - [X] Dining Hall: Dining recollections are not grabbed when triggered in the Dining Hall
 
 ## About
 * ***Latest released version:*** 2.4
