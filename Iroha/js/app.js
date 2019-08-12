@@ -37,6 +37,12 @@ const DELVE_DEFAULT_VC_COUNT = 23;
 /** Number of pseudo-stats */
 const PSEUDO_STAT_COUNT = 5;
 
+/** Memoria type in the Exchange section */
+const MEMORIA_EXCTYPE = 1;
+
+/** Memoria rarity in the Exchange section */
+const MEMORIA_EXCRARITY = 3;
+
 /* ----------------------------- GLOBAL DATA MEMBERS ---------------------------- */
 
 /** Days of a week */
@@ -96,7 +102,7 @@ var writerKaika = new writerBlossoming(0, 0, 0, 0, 0, 0, 0, 0, 0);
  * + Essential features:
  *      - Login VC: login()
  *      - Office data: myRoom()
- *      - Other VCs from assistant: headerVoice(), voiceImmediate()
+ *      - Other VCs from assistant: assistant(), voiceImmediate()
  *      - Tainted Book Delve: start(), battle(), battlePhase(), result()
  *      - Ensouled Book Delve: ensouledDelveVoice(), ensouledTransmigratedVoice()
  *      - Blossoming: skillTree()
@@ -157,9 +163,9 @@ function (request) {
                     request.getContent(login);
                 }
                 else if (endpt[1].includes("page/mypage")               /* Library */
-                        || endpt[1].includes("page/mission")            /* Reserach */
-                        || endpt[1].includes("page/shop")) {            /* Shop */
-                    request.getContent(headerVoice);
+                    || endpt[1].includes("page/mission")                /* Reserach */
+                    || endpt[1].includes("page/shop")) {                /* Shop */
+                    request.getContent(assistant);
                 }
                 else if (endpt[1].includes("page/myroom")) {            /* Office */
                     request.getContent(myRoom);
@@ -169,7 +175,7 @@ function (request) {
                 }
                 else if (endpt[1].includes("workspaces")) {
                     if (endpt[1].includes("page/"))
-                        request.getContent(headerVoice);                /* Ensouled Book Delve completed */
+                        request.getContent(assistant);                  /* Ensouled Book Delve completed */
                     else
                         request.getContent(ensouledDelveVoice);         /* Ensouled Book Delve start & summoned */
                 }
@@ -214,6 +220,9 @@ function (request) {
                 else if (endpt[1].includes("cards/")) {                 /* Memoria info */
                     request.getContent(memoria)
                 }
+                else if (endpt[1].includes("page/trade")) {                 /* Memoria info */
+                    request.getContent(tradeMemorias)
+                }
                 else if (endpt[1].includes("rings/")                    /* Ring in Memoria Index */
                         && !(endpt[1].includes("page/"))) {
                     request.getContent(ringMemoria);
@@ -243,14 +252,39 @@ function login(content) {
     out.innerHTML = o;
 }
 
+/** This function prints content grabbed from the assistant, including VCs and
+  * recollections playing upon login.
+  * + Return immediately if an empty duplicate request encountered
+  * + Display the autoplaying recollection if detected
+  * + Display the assistant's info and all VCs found
+  * @version 2.0
+  * @since July 26, 2019
+  * @param {*} content The content found in the requesting URL
+  * @returns N/A
+  */
+function assistant(content) {
+    json = JSON.parse(content);
+
+    if (json == null)
+        return;
+
+    /* Check for autoplaying recollections */
+    if (json.adv != null && json.adv != 0)
+        o += delveRecos(json.adv[0]);
+
+    /* Get all VCs from the assistant */
+    o += headerVoice(json.header);
+
+    out.innerHTML = o;
+}
+
 /** This function prints content grabbed from the Office, including VCs and available
   * sprites.
   * + Return immediately if an empty duplicate request encountered
-  * + Parse the name and ID of the assistant
-  * + Loop through and display all VCs found
+  * + Display the assistant's info and all VCs found
   * + Parse available sprites and match their outfit numberings
-  * @version 1.2.1
-  * @since June 17, 2019
+  * @version 1.3
+  * @since July 26, 2019
   * @param {*} content The content found in the requesting URL
   * @returns N/A
   */
@@ -260,13 +294,7 @@ function myRoom(content) {
     if (json.header == null)
         return;
 
-    /* Parse the name and ID of the assistant */
-    o += b("Leader: " + nameTranslate(json.header.leader_unit.master.name) + "<br/>ID: " +  json.header.leader_unit.mst_unit_id);
-
-    /* Parse available voice clips from the Office */
-    for (var item of json.header.leader_unit.voices) {
-        o += br(llink("http://cdn.bungo.dmmgames.com" + item.path, convertVoiceNum(item.asset_no)));
-    }
+    o += headerVoice(json.header);
 
     /* Grab available altfits and sprites */
     o += b("<i>Available sprites:</i>");
@@ -306,25 +334,25 @@ function myRoom(content) {
   * + Return immediately if an empty duplicate request encountered
   * + Parse the name and ID of the assistant
   * + Loop through and display all VCs found
-  * @version 1.1.4
-  * @since June 16, 2019
-  * @param {*} content The content found in the requesting URL
-  * @returns N/A
+  * @version 2.0
+  * @since July 26, 2019
+  * @param {*} assistant The current assistant in the Library
+  * @returns {string} The assistant's name and link to their VCs
   */
-function headerVoice(content) {
-    json = JSON.parse(content);
+function headerVoice(assistant) {
+    /** Placeholder for the assistant VCs */
+    var assistant_voice = "";
 
-    if (json.header.leader_unit.voices != null && json.header.leader_unit.voices.length != 0) {
+    if (assistant.leader_unit.voices != null && assistant.leader_unit.voices.length != 0) {
         /* Parse the name and ID of the assistant */
-        o += b("Leader: " + nameTranslate(json.header.leader_unit.master.name) + "<br/>ID: " +  json.header.leader_unit.mst_unit_id);
+        assistant_voice += b("Leader: " + nameTranslate(assistant.leader_unit.master.name) + "<br/>ID: " + assistant.leader_unit.mst_unit_id);
 
         /* Display all VCs found */
-        for (var item of json.header.leader_unit.voices) {
-            o += br(llink("http://cdn.bungo.dmmgames.com" + item.path, convertVoiceNum(item.asset_no)));
-        }
+        for (var item of assistant.leader_unit.voices)
+            assistant_voice += br(llink("http://cdn.bungo.dmmgames.com" + item.path, convertVoiceNum(item.asset_no)));
     }
 
-    out.innerHTML = o;
+    return assistant_voice;
 }
 
 /** This function prints immediate voice clips found while playing.
@@ -654,20 +682,15 @@ function skillTree(content) {
         /** Placeholder for new pseudo-stat */
         var newPStats = [json.unit.base_tech, json.unit.base_genius, json.unit.base_beauty, json.unit.base_theme, json.unit.base_truth];
 
-        /** Placeholder for pseudo-stat number */
-        var pStatNum = 0;
-
         /** Look for the correct stat change */
         for (i = 0; i < PSEUDO_STAT_COUNT; i++) {
             statChange = writerKaika.comparePStats(newPStats[i], i);
 
             /** Only show stat change if the unlocked node is a stat node */
-            if (statChange === 0)
-                ++pStatNum;
-            else {
+            if (statChange != 0) {
                 o += b("Stats change:");
 
-                switch (pStatNum) {
+                switch (i) {
                     case 0:
                         o += "<br/><b><i>TECH + ";
                         break;
@@ -689,11 +712,11 @@ function skillTree(content) {
                 o += "<br/><code>| " + (((json.unit.atk - writerKaika.atk) == 0) ? "" : (json.unit.atk - writerKaika.atk)) + " || " + (((json.unit.def - writerKaika.def) == 0) ? "" : (json.unit.def - writerKaika.def)) + " || " + (((json.unit.avd - writerKaika.evade) == 0) ? "" : (json.unit.avd - writerKaika.evade)) + "</code>";
 
                 break;
-                }
+            }
         }
 
         /* Update the writer's kaika before processing a new blossoming */
-        writerKaika.updateMainStats(json.unit.atk, json.unit.def, json.unit.avd, json.unit.base_tech, json.unit.base_genius, json.unit.base_beauty, json.unit.base_theme, json.unit.base_truth);
+        writerKaika = new writerBlossoming(json.unit.atk, json.unit.def, json.unit.avd, json.unit.base_tech, json.unit.base_genius, json.unit.base_beauty, json.unit.base_theme, json.unit.base_truth);
     }
 
     out.innerHTML = o;
@@ -1078,14 +1101,7 @@ function memoria(content) {
     o += memoriaInfo(json.card.master);
 
     /* Parse the memoria's stats */
-
-    /** A placeholder for memoria stats as displayed on Wikia */
-    var mem_stats = json.card.status_description;
-    mem_stats = mem_stats.replace(/技術 /g, "TECH").replace(/天才 /g, "TAL").replace(/美 /g, "AES").replace(/主題 /g, "THM").replace(/真実 /g, "RL");
-    mem_stats = mem_stats.replace(/\s\\n/g, "&lt;br&sol;&gt;");
-    mem_stats = mem_stats.replace(/\s/g, "&lt;br&sol;&gt;");
-    mem_stats = mem_stats.replace(/急所への攻撃率が上がる&lt;br&sol;&gt;/g, "CRIT RATE").replace(/命中率が上がる&lt;br&sol;&gt;/g, "ACCURACY").replace(/降臨の上昇率が上がる&lt;br&sol;&gt;/g, "EP GAUGE FILL RATE");
-    o += "<code>|stats = " + mem_stats + "</code><br/>";
+    o += "<code>|stats = " + memoriaStats(json.card.status_description) + "</code><br/>";
 
     /* Lastly, the memoria's level */
     o += "<code>|lvl = " + json.card.level + "</code><br/>";
@@ -1101,6 +1117,66 @@ function memoria(content) {
     if (json.card.level == 2) {
         o += br(llink("http://cdn.bungo.dmmgames.com" + json.next_level_card_image, "Lv3 Card Image"));
         o += br("Lv3 Description: " + json.next_level_status_description);
+    }
+
+    out.innerHTML = o;
+}
+
+/** This function displays info of all memorias found in the Exchange section.
+  * + Loop through all exchangeable items
+  * + Only display cards with their info stored in this section
+  * @version 1.0
+  * @since July 31, 2019
+  * @param {*} content The content found in the requesting URL
+  * @returns N/A
+  */
+function tradeMemorias(content) {
+    json = JSON.parse(content);
+
+    /** Item counter */
+    var count = 1;
+
+    for (var item of json.trades) {
+        if (item.master.type === MEMORIA_EXCTYPE || item.master.content_master === MEMORIA_EXCRARITY) {
+            o += ((count === 1)? b("Spark Essence Exchange:") : "") + b("<i>Memoria #" + count++ + ":</i><br/>");
+
+            /* Codes for a memoria card */
+            o += "<code>{{Cardbox</code><br/>";
+
+            /* Parse the kanji name */
+
+            /** A placeholder for kanji names as displayed on Wikia */
+            var mem_kanji_name = item.master.content_master.name.split("-");
+
+            o += "<code>|kanji = " + mem_kanji_name[0] + "</code><br/>";
+
+            /** Memoria in the Exchange section does not have its furigana included */
+            o += "<code>|furigana = </code><br/>";
+            o += "<code>|rarity = " + item.master.content_master.rare + "</code><br/>";
+
+            /* Parse the writer's name if available */
+            o += "<code>|wr = ";
+
+            if (mem_kanji_name.length > 1) {
+                /** A placeholder for featured writer for verifying purpose */
+                var wr_name = nameTranslate(mem_kanji_name[1]);
+
+                if (wr_name !== mem_kanji_name[1])
+                    o += wr_name;
+            }
+
+            o += "</code><br/>";
+
+            /** Memoria in the Exchange section does not have its description included */
+            o += "<code>|desc = </code><br/>";
+
+            /* Lastly, its stats and level */
+            o += "<code>|stats = " + memoriaStats(item.master.content_master.status_description) + "</code><br/>";
+            o += "<code>|lvl = " + item.master.content_master.level + "</code><br/>";
+            o += "<code>}}</code><br/>";
+
+            o += br(llink("http://cdn.bungo.dmmgames.com" + item.master.content_master.img_path, "Card image"));
+        }
     }
 
     out.innerHTML = o;
@@ -1144,13 +1220,13 @@ function reportMemorias(content) {
 }
 
 /** This function collects all basic info of a memoria:
-  * + Memoria's name in kanji and hiragana 
+  * + Memoria's name in kanji and hiragana
   * + Featured writer
   * + Description
-  * @version 1.0
-  * @since July 15, 2019
+  * @version 1.0.1
+  * @since August 1, 2019
   * @param {*} info The content containing a memoria's basic info
-  * @return A string consisting of the memoria's name, writer and description
+  * @return {string} The code consisting of the memoria's name, writer and description
   */
 function memoriaInfo(info) {
     /** Placeholder containing all info collected */
@@ -1191,10 +1267,28 @@ function memoriaInfo(info) {
     return memoria_data;
 }
 
+/** This function translates the status description of a memoria to English.
+  * @version 1.0
+  * @since August 1, 2019
+  * @param {*} jpStat The memoria's status description
+  * @return {string} The translated status
+  */
+function memoriaStats(jpStat) {
+    /** A placeholder for memoria stats as displayed on Wikia */
+    var mem_stats = jpStat;
+
+    mem_stats = mem_stats.replace(/技術 /g, "TECH").replace(/天才 /g, "TAL").replace(/美 /g, "AES").replace(/主題 /g, "THM").replace(/真実 /g, "RL");
+    mem_stats = mem_stats.replace(/\s\\n/g, "&lt;br&sol;&gt;");
+    mem_stats = mem_stats.replace(/\s/g, "&lt;br&sol;&gt;");
+    mem_stats = mem_stats.replace(/急所への攻撃率が上がる&lt;br&sol;&gt;/g, "CRIT RATE").replace(/命中率が上がる&lt;br&sol;&gt;/g, "ACCURACY").replace(/降臨の上昇率が上がる&lt;br&sol;&gt;/g, "EP GAUGE FILL RATE");
+
+    return mem_stats;
+}
+
 /** This function grabs the Chief's VC in paydays.
   * + Parse the month and display a link to the VC
-  * @version 1.0
-  * @since July 2, 2019
+  * @version 1.0.1
+  * @since July 31, 2019
   * @param {*} content The content found in the requesting URL
   * @returns N/A
   */
@@ -1208,7 +1302,7 @@ function salary(content) {
     o += b(months[json.month] + " Payday:");
 
     /* Grab the login VC */
-    o += br(llink("http://cdn.bungo.dmmgames.com" + json.popup.voice_path, "Chief Librarian's VC"));
+    o += br(llink("http://cdn.bungo.dmmgames.com" + json.voice_path, "Chief Librarian's VC"));
     out.innerHTML = o;
 
 }
@@ -1837,6 +1931,10 @@ function nameTranslate(name) {
         case "吉井勇":
         case 58:
             return "Yoshii Isamu";
+            break;
+        case "草野心平":
+        case 66:
+            return "Kusano Shinpei";
             break;
         case "高浜虚子":
         case 74:

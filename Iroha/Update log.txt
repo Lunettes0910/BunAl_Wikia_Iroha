@@ -1,3 +1,24 @@
+VERSION 2.4.3
+
++ New features & improvements:
+  - Display info from exchangeable memorias in the Spark Essence Exchange section
+
++ Bug fixes:
+  - Blossoming pseudo-stat changes by node may not be updated correctly (main stats were intact)
+  - Link to Chief Librarian's payday voice clip did not work
+
+=======================================================
+VERSION 2.4.2
+
++ New features & improvements:
+  - Kusano Shinpei added to the database
+  - Collect and display recollections autoplaying upon login
+
++ Bug fixes:
+  - Blossoming pseudo-stat changes by node may not be updated correctly (main stats were intact)
+  - Multi-lined ensouled book delve lines were not displayed correctly
+
+=======================================================
 VERSION 2.4.1
 
 + New features & improvements:
