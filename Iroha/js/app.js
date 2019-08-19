@@ -84,7 +84,8 @@ const eventNames = ["", "Purify &quot;The Five-Storied Pagoda&quot;", "An Encour
     "Spring Cleaning Mad Banquet", "", "Co-Research with Chief Librarian ~Part Eleven~",
     "Research on Miki Rofuu", "Purify &quot;The Moon Over the Mountain&quot;", "",
     "", "Blood Oath Mad Banquet", "",
-    "Co-Research with Chief Librarian ~Part Twelve~"
+    "Co-Research with Chief Librarian ~Part Twelve~", "Research on Kusano Shinpei", "Rerun of &quot;Summer Daydream&quot;",
+    "Chronicles of Galactic Railroad"
 ];
 
 /** Count of known events */
