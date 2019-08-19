@@ -9,10 +9,11 @@
     * For other smaller suggestions that might be handled sideline, check the project's plan [here](https://github.com/users/MinhNTran-1227/projects/3)
 
 * ***Bugs:***
-    - [X] Dining Hall: Dining recollections are not grabbed when triggered in the Dining Hall
+    * [ ] Blossoming stat tracking is still not working correctly
 
 ## About
-* ***Latest released version:*** 2.4.1 *(probably final for a long time)*
+* ***Testing version:*** 2.4.3
+* ***Latest released version:*** 2.4.2 ~*(probably final for a long time)*~ *(I lied)*
 
 This project is a small extension used to collect materials and data from the Japanese browser game *Bungo to Alchemist* (lit. *Writers and Alchemists*). The plugin was written to support the maintenance and update of [the game's Wikia](https://bungo.fandom.com) and has been passed down among the Wikia's staff.
 

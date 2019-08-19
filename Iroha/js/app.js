@@ -34,6 +34,12 @@ class writerBlossoming {
 /** Default in-delve VC count for writers with no ring */
 const DELVE_DEFAULT_VC_COUNT = 23;
 
+/** Default hidden in-delve VC IDs */
+const DELVE_HIDDEN_VC_ID_1 = 53;
+
+/** Default hidden in-delve VC IDs */
+const DELVE_HIDDEN_VC_ID_2 = 54;
+
 /** Number of pseudo-stats */
 const PSEUDO_STAT_COUNT = 5;
 
@@ -43,16 +49,14 @@ const MEMORIA_EXCTYPE = 1;
 /** Memoria rarity in the Exchange section */
 const MEMORIA_EXCRARITY = 3;
 
-/* ----------------------------- GLOBAL DATA MEMBERS ---------------------------- */
-
 /** Days of a week */
-var weekDays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const weekDays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
 /** Months of a year */
-var months = ["", "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+const months = ["", "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
 /** Event names, 3 per line, ordered by ID from the Recollection Register */
-var eventNames = ["", "Purify &quot;The Five-Storied Pagoda&quot;", "An Encouragement on Learning",
+const eventNames = ["", "Purify &quot;The Five-Storied Pagoda&quot;", "An Encouragement on Learning",
     "Research on Sakaguchi Ango", "Co-Research with Chief Librarian", "An Encouragement of Learning ~Cherry Blossom~",
     "Research on Arishima Takeo", "Purify &quot;The Sunless Street&quot;", "Research on Ibuse Masuji",
     "Co-Research with Chief Librarian ~Part Two~", "Cafe Royale Bloodbath", "Research on Kawabata Yasunari",
@@ -82,6 +86,11 @@ var eventNames = ["", "Purify &quot;The Five-Storied Pagoda&quot;", "An Encourag
     "", "Blood Oath Mad Banquet", "",
     "Co-Research with Chief Librarian ~Part Twelve~"
 ];
+
+/** Count of known events */
+const EVENT_COUNT = eventNames.length - 1;
+
+/* ----------------------------- GLOBAL DATA MEMBERS ---------------------------- */
 
 /** HTML output */
 var out = document.getElementById("out");
@@ -382,12 +391,12 @@ function voiceImmediate(content) {
   * + Print the Tainted Book's name
   * + Check for voice paths for recollections at the start of the delve
   * + Store the delving writers to a global array
-  * + Display all sprites and VCs from new writers and new materials from ring-equipped writers
-  * @version 1.3
-  * @since June 17, 2019
+  * + Display hidden VCs from known writers, all sprites and VCs from new writers
+  * and new materials from ring-equipped writers
+  * @version 1.3.1
+  * @since August 19, 2019
   * @param {*} content The content found in the requesting URL
   * @returns N/A
-  * @todo Update this function to grab newer recollections if possible
   */
 function start(content) {
     json = JSON.parse(content);
@@ -396,7 +405,7 @@ function start(content) {
         return;
 
     /* Tainted Book's name */
-    o += b("Tainted Book:<br/><i>" + bookTranslate(json.stage.name) + "</i>");
+    o += "<hr/><b>Tainted Book:<br/><i>" + bookTranslate(json.stage.name) + "</i></b><br/><br/>";
 
     /* Grab the goddamn recollection if found */
     o += (json.adv == null || json.adv.length == 0) ? "" : recollection(json.adv[0]);
@@ -415,8 +424,9 @@ function start(content) {
         writer_name = nameTranslate(unit.master.name);
 
         if (unit.master.name !== writer_name) {
+            /* Ring writers have one extra VC */
             if (unit.voices.length > DELVE_DEFAULT_VC_COUNT) {
-                o += "<hr/>\n" + p(unit.mst_unit_id + " " + writer_name + " (" + weaponTranslate(unit.category) + ")");
+                o += p(unit.mst_unit_id + " " + writer_name + " (" + weaponTranslate(unit.category) + ")");
                 writer_name = writer_name.replace(/ /g, "_");
 
                 o += b("Writer sprites: ");
@@ -424,11 +434,21 @@ function start(content) {
                 o += br(llink("http://cdn.bungo.dmmgames.com" + unit.icons[3].path, writer_name + "_bookdelve_(ring)_prev.png"));
 
                 o += b("Battle VCs: ");
-                o += br(llink("http://cdn.bungo.dmmgames.com" + unit.voices[23].path, writer_name + "_tainted_attackring"));
+                o += br(llink("http://cdn.bungo.dmmgames.com" + unit.voices[DELVE_DEFAULT_VC_COUNT].path, writer_name + "_tainted_attackring"));
 
+            } else { /* Default heading for known writers with default weapon */
+                o += p(unit.mst_unit_id + " " + writer_name);
+                writer_name = writer_name.replace(/ /g, "_");
             }
+
+            /* Grabs hidden VCs for all known writers */
+            o += b("Hidden VCs: ");
+            for (var item of unit.voices)
+                if (item.asset_no === DELVE_HIDDEN_VC_ID_1 || item.asset_no === DELVE_HIDDEN_VC_ID_2)
+                    o += br(llink("http://cdn.bungo.dmmgames.com" + item.path, convertVoiceNum(item.asset_no)));
+
         } else {
-            o += "<hr/>\n" + p(unit.mst_unit_id + " " + writer_name);
+            o += p(unit.mst_unit_id + " " + writer_name);
             writer_name = writer_name.replace(/ /g, "_");
 
             o += b("Writer sprites: ");
@@ -440,11 +460,13 @@ function start(content) {
                 o += br(llink("http://cdn.bungo.dmmgames.com" + item.path, convertVoiceNum(item.asset_no)));
         }
 
-            /* Store their ID to other book delve functions */
-            writers[writer_order++] = unit.mst_unit_id;
-        }
+        /* Store their ID to other book delve functions */
+        writers[writer_order++] = unit.mst_unit_id;
 
-        out.innerHTML = o;
+        o += "<hr style='width:50%; margin:15px auto 15px auto;'>";
+    }
+
+    out.innerHTML = o;
 }
 
 /** This function displays the enemies and item drops encountered in a delve node.
@@ -539,9 +561,9 @@ function battlePhase(phaseContent) {
 
 /** This function displays the item drops as a reward from the delve.
   * + Print the hints if available
-  * + Print the drop/reward list with translated items' names
-  * @version 1.2.2
-  * @since June 17, 2019
+  * + Print the drop/reward list with translated items' names (if available) and images (if from new events)
+  * @version 1.3
+  * @since August 19, 2019
   * @param {*} content The content found in the requesting URL
   * @returns N/A
   */
@@ -564,26 +586,35 @@ function result(content) {
 
     /* Check for event points */
     if (json.event != null) {
-        /** A placeholder for the event point's translated name */
+        /* A placeholder for the event point's translated name */
         var event_item_name = json.event.point.name.split("-");
-        event_item_name = eventItemTranslate(event_item_name[0]);
+        event_item_tl_name = eventItemTranslate(event_item_name[0]);
 
         o += b("<i>Event point:</i> ");
-        o += json.event.point.point + " " + event_item_name;
+        o += json.event.point.point + " " + event_item_tl_name;
 
-        /** Check for bonus event points */
+        /* Check for bonus event points */
         if (json.event.point.bonus != null && json.event.point.bonus != 0) {
             o += "<br/><b><i>Memoria bonus:</i></b> ";
-            o += json.event.point.bonus + " " + event_item_name;
+            o += json.event.point.bonus + " " + event_item_tl_name;
         }
 
-        /** Check for first clear bonus */
+        /* Check for first clear bonus */
         if (json.event.point.first_cleared_point != null && json.event.point.first_cleared_point != 0) {
             o += "<br/><b><i>First cleared bonus:</i></b> ";
-            o += json.event.point.first_cleared_point + " " + event_item_name;
+            o += json.event.point.first_cleared_point + " " + event_item_tl_name;
+        }
+
+        /* Display event item images if it is new event or rerun (to be improved later) */
+        if (json.stage.event_id > EVENT_COUNT && event_item_tl_name == event_item_name[0]) {
+            var defaultItemLink = "http://cdn.bungo.dmmgames.com" + json.event.point.path;
+            o += "<br/>" + llink(defaultItemLink.replace("03", "01"), "Item image");
+            o += "<br/>" + llink(defaultItemLink.replace("03", "02"), "Item shop icon");
+            o += "<br/>" + llink(defaultItemLink, "Item icon");
         }
     }
 
+    o += "<hr/>";
     out.innerHTML = o;
 }
 
@@ -2156,8 +2187,8 @@ function convertVoiceNum(voice_id) {
         case 52:
             return "repairs_breakdown";
             break;
-        case 53:
-        case 54:
+        case DELVE_HIDDEN_VC_ID_1:  /* 53 */
+        case DELVE_HIDDEN_VC_ID_2:  /* 54 */
             return "N/A";
             break;
         case 55:
@@ -2340,8 +2371,8 @@ function isBoss(jpName) {
 /** This function converts the number/color of a Taint into English.
   * + Extract the letter denoting the Taint's type
   * + Translate the letter into English if it is a valid type (number/color)
-  * @version 1.1.1
-  * @since June 17, 2019
+  * @version 1.1.2
+  * @since August 19, 2019
   * @param {string} jpName The Taint's Japanese name
   * @returns {string} The Taint's translated number/color (if found), or its extracted type in JP.
   */
@@ -2369,6 +2400,10 @@ function taintType(jpName) {
         case "肆":
         case "四":
             return " No. 4";
+            break;
+        case "伍":
+        case "五":
+            return " No. 5";
             break;
 
         /* Colors */
@@ -2553,8 +2588,8 @@ function weaponTranslate(jpName) {
 /** This function converts the name of an event item point into English.
   * + Translate the item's name into English if it is one of the event points listed
   * in the function.
-  * @version 1.1
-  * @since June 17, 2019 ("Purify 'Alice's Adventures in Wonderland'" event)
+  * @version 1.1.1
+  * @since August 19, 2019 ("Chronicles of Galactic Railroad" event)
   * @param {string} jpName The item's Japanese name
   * @returns {string} The item's translated name (if found), or its Japanese name unchanged
   * @todo Compile a list of all event points
@@ -2564,6 +2599,11 @@ function eventItemTranslate(jpName) {
         /* Cafe series */
         case "コーヒー":
             return "Coffee";
+            break;
+
+        /* "Chronicles of Galactic Railroad" event */
+        case "切符":
+            return "Tickets";
             break;
 
         /* Co-Research series */
@@ -2584,6 +2624,11 @@ function eventItemTranslate(jpName) {
         /* Mad Banquet series */
         case "アミュレット":
             return "Amulets";
+            break;
+
+        /* Summer Daydream */
+        case "貝殻":
+            return "Shells";
             break;
     }
 

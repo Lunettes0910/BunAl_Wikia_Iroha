@@ -1,22 +1,19 @@
-VERSION 2.4.3
-
-+ New features & improvements:
-  - Display info from exchangeable memorias in the Spark Essence Exchange section
-
-+ Bug fixes:
-  - Blossoming pseudo-stat changes by node may not be updated correctly (main stats were intact)
-  - Link to Chief Librarian's payday voice clip did not work
-
-=======================================================
 VERSION 2.4.2
 
 + New features & improvements:
-  - Kusano Shinpei added to the database
   - Collect and display recollections autoplaying upon login
+  - Display info from exchangeable memorias in the Spark Essence Exchange section
+  - Display hidden VCs (unused in delves) from all delving writers
+  - Grab images of event item from new events
+  - Small improvements to the layout of data display when starting the delves
+  - Kusano Shinpei and other incremental updates added to the database
 
 + Bug fixes:
-  - Blossoming pseudo-stat changes by node may not be updated correctly (main stats were intact)
   - Multi-lined ensouled book delve lines were not displayed correctly
+  - Link to Chief Librarian's payday voice clip did not work
+
++ Acknowledged bug:
+  - Blossoming pseudo-stat changes by node may not be updated correctly (main stats were intact)
 
 =======================================================
 VERSION 2.4.1
