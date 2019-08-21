@@ -85,7 +85,7 @@ const eventNames = ["", "Purify &quot;The Five-Storied Pagoda&quot;", "An Encour
     "Research on Miki Rofuu", "Purify &quot;The Moon Over the Mountain&quot;", "",
     "", "Blood Oath Mad Banquet", "",
     "Co-Research with Chief Librarian ~Part Twelve~", "Research on Kusano Shinpei", "Rerun of &quot;Summer Daydream&quot;",
-    "Chronicles of Galactic Railroad"
+    "Chronicles of Galactic Railroad", "Aka and Ao&apos;s Study on Alchemy ~Third Years~"
 ];
 
 /** Count of known events */
@@ -2032,8 +2032,8 @@ function nameTranslate(name) {
 /** This function converts the name & ID of a writer's VC into English.
   * + Check for known voice clips' names and IDs and translate accordingly
   * + Otherwise, return the VC as "No label"
-  * @version 1.1.1
-  * @since June 19, 2019
+  * @version 1.1.2
+  * @since August 19, 2019
   * @param {string} name A Japanese name or ID
   * @return {string} The parameter's English translation (if available), otherwise marked as "No label"
   */
@@ -2233,8 +2233,8 @@ function convertVoiceNum(voice_id) {
   * + Check if the Taint is a "failed" counterpart and parse accordingly
   * + Check if the Taint is a boss and return the parsed name immediately if so
   * + At this point, the Taint is a common enemy. Parse their name and type.
-  * @version 1.2
-  * @since June 17, 2019
+  * @version 1.3
+  * @since August 20, 2019
   * @param {string} jpName The Taint's Japanese name
   * @returns {string} The Taint's translated name (if found) or unchanged name in JP
   */
@@ -2242,9 +2242,13 @@ function taintTranslate(jpName) {
     /* A placeholder for the Taint's translated name */
     var name = "";
 
+    /* A placeholder for Failed Taints' name correction */
+    var isFailed = false;
+
     /* Check if the Taint is a Failed counterpart */
     if (jpName.substr(0, 3) == "缺いた") {
         name += "Failed ";
+        isFailed = true;
 
         /* Cut the first 3 letters in the Taint's name standing for "Failed" */
         jpName = jpName.substr(3);
@@ -2255,7 +2259,7 @@ function taintTranslate(jpName) {
     if (boss != "") {
         /* Concatenate the boss' name if the Taint is a Failed counterpart */
         if (name != "")
-            return name + " " + boss;
+            return name + " " + ((boss.includes("The ")) ? boss.substr(4, boss.length - 4) : boss);
 
         return boss;
     }
@@ -2597,6 +2601,11 @@ function weaponTranslate(jpName) {
   */
 function eventItemTranslate(jpName) {
     switch (jpName) {
+        /* Aka and Ao series */
+        case "フラスコ":
+            return "Flasks";
+            break;
+
         /* Cafe series */
         case "コーヒー":
             return "Coffee";

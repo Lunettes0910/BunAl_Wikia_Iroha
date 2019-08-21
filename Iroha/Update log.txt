@@ -1,3 +1,15 @@
+VERSION 2.4.3
+
++ New features & improvements:
+  - Additional updates to the database
+
++ Bug fixes:
+  - Failed Taints with original name starting with "The" are displayed as "Failed The..."
+
++ Acknowledged bug:
+
+=======================================================
+
 VERSION 2.4.2
 
 + New features & improvements:
