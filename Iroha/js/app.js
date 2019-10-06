@@ -85,7 +85,9 @@ const eventNames = ["", "Purify &quot;The Five-Storied Pagoda&quot;", "An Encour
     "Research on Miki Rofuu", "Purify &quot;The Moon Over the Mountain&quot;", "",
     "", "Blood Oath Mad Banquet", "",
     "Co-Research with Chief Librarian ~Part Twelve~", "Research on Kusano Shinpei", "Rerun of &quot;Summer Daydream&quot;",
-    "Chronicles of Galactic Railroad", "Aka and Ao&apos;s Study on Alchemy ~Third Years~"
+    "Chronicles of Galactic Railroad", "Aka and Ao&apos;s Study on Alchemy ~Third Years~", "Rerun of &quot;Towards the Truth&quot;",
+    "", "Co-Research with Chief Librarian ~Part Thirteen~", "Purify &quot;The Final Problem&quot;",
+    "Rerun of &quot;Repair the Grimoire of Fate&quot;"
 ];
 
 /** Count of known events */
@@ -344,8 +346,8 @@ function myRoom(content) {
   * + Return immediately if an empty duplicate request encountered
   * + Parse the name and ID of the assistant
   * + Loop through and display all VCs found
-  * @version 2.0
-  * @since July 26, 2019
+  * @version 2.0.1
+  * @since October 6, 2019
   * @param {*} assistant The current assistant in the Library
   * @returns {string} The assistant's name and link to their VCs
   */
@@ -355,7 +357,7 @@ function headerVoice(assistant) {
 
     if (assistant.leader_unit.voices != null && assistant.leader_unit.voices.length != 0) {
         /* Parse the name and ID of the assistant */
-        assistant_voice += b("Leader: " + nameTranslate(assistant.leader_unit.master.name) + "<br/>ID: " + assistant.leader_unit.mst_unit_id);
+        assistant_voice += b("<hr/>Leader: " + nameTranslate(assistant.leader_unit.master.name) + "<br/>ID: " + assistant.leader_unit.mst_unit_id);
 
         /* Display all VCs found */
         for (var item of assistant.leader_unit.voices)
@@ -394,8 +396,8 @@ function voiceImmediate(content) {
   * + Store the delving writers to a global array
   * + Display hidden VCs from known writers, all sprites and VCs from new writers
   * and new materials from ring-equipped writers
-  * @version 1.3.1
-  * @since August 19, 2019
+  * @version 1.3.2
+  * @since October 6, 2019
   * @param {*} content The content found in the requesting URL
   * @returns N/A
   */
@@ -409,7 +411,7 @@ function start(content) {
     o += "<hr/><b>Tainted Book:<br/><i>" + bookTranslate(json.stage.name) + "</i></b><br/><br/>";
 
     /* Grab the goddamn recollection if found */
-    o += (json.adv == null || json.adv.length == 0) ? "" : recollection(json.adv[0]);
+    o += (json.adv == null || json.adv.length == 0) ? "" : (recollection(json.adv[0]) + "<br/><br/>");
 
     /** A placeholder for parsing the writer's name to the images */
     var writer_name = "";
@@ -1730,8 +1732,8 @@ function recollection(recoContent) {
   * + Check if they are writers' name/ID, library personnel or stroll location
   * and translate accordingly
   * + Otherwise, return the untranslated name
-  * @version 1.3
-  * @since June 17, 2019
+  * @version 1.4
+  * @since October 6, 2019
   * @param {string} name A Japanese name or ID
   * @return {string} The parameter's English translation (if available), or the parameter unchanged
   */
@@ -1807,6 +1809,9 @@ function nameTranslate(name) {
         case 17:
             return "Kajii Motojirou";
             break;
+        case "広津和郎":
+        case 18:
+            return "Hirotsu Kazuo";
         case "武者小路実篤":
         case 19:
             return "Mushanokouji Saneatsu";
@@ -2358,6 +2363,11 @@ function isBoss(jpName) {
             return "Mimesis Holmes";
             break;
 
+        /* "The Final Problem" bosses */
+        case "ミメシス=ドイル":
+            return "Mimesis Doyle";
+            break;
+
         /* "Coup de Main" events' special bosses */
         case "苦悶の虎":
             return "Tiger of Anguish";
@@ -2634,6 +2644,11 @@ function eventItemTranslate(jpName) {
         /* Mad Banquet series */
         case "アミュレット":
             return "Amulets";
+            break;
+
+        /* Repair the Grimoire of Fate */
+        case "術書のかけら":
+            return "Grimoire Tatters";
             break;
 
         /* Summer Daydream */
