@@ -43,6 +43,21 @@ const DELVE_HIDDEN_VC_ID_2 = 54;
 /** Number of pseudo-stats */
 const PSEUDO_STAT_COUNT = 5;
 
+/** In-game ID for normal sprite */
+const NORMAL_SPRITE_ID = 1;
+
+/** In-game ID for blossoming outfit */
+const BLOSSOMING_SPRITE_ID = 2;
+
+/** In-game ID for strolls outfit */
+const STROLLS_SPRITE_ID = 3;
+
+/** In-game ID for first event outfit */
+const EVENT_SPRITE_ID_1 = 4;
+
+/** In-game ID for second event outfit */
+const EVENT_SPRITE_ID_2 = 5;
+
 /** Memoria type in the Exchange section */
 const MEMORIA_EXCTYPE = 1;
 
@@ -182,6 +197,9 @@ function (request) {
                 else if (endpt[1].includes("page/myroom")) {            /* Office */
                     request.getContent(myRoom);
                 }
+                else if (endpt[1].includes("costumes/")) {              /* Outfit lists */
+                    request.getContent(costume);
+                }
                 else if (endpt[1].includes("stages/start/")) {          /* Tainted Book Delve start */
                     request.getContent(start);
                 }
@@ -232,7 +250,7 @@ function (request) {
                 else if (endpt[1].includes("cards/")) {                 /* Memoria info */
                     request.getContent(memoria)
                 }
-                else if (endpt[1].includes("page/trade")) {                 /* Memoria info */
+                else if (endpt[1].includes("page/trade")) {             /* Memoria info in SE Exchange */
                     request.getContent(tradeMemorias)
                 }
                 else if (endpt[1].includes("rings/")                    /* Ring in Memoria Index */
@@ -317,20 +335,20 @@ function myRoom(content) {
 
     for (var image of json.header.leader_unit.images) {
         switch (image.asset_no) {
-            case 1:
+            case NORMAL_SPRITE_ID:
                 o += br(llink("http://cdn.bungo.dmmgames.com" + image.path, assistant_name + "_normal"));
                 break;
-            case 2:
+            case BLOSSOMING_SPRITE_ID:
                 o += br(llink("http://cdn.bungo.dmmgames.com" + image.path, assistant_name + "_alt1 (Blossoming)"));
                 break;
-            case 3:
+            case STROLLS_SPRITE_ID:
                 o += br(llink("http://cdn.bungo.dmmgames.com" + image.path, assistant_name + "_alt2 (Strolls)"));
                 break;
-            case 8:
+            case WEAKENED_WEAPONLESS_SPRITE_ID:
                 o += br(llink("http://cdn.bungo.dmmgames.com" + image.path, assistant_name + "_weakened_weaponless"));
                 break;
-            case 4:
-            case 5:
+            case EVENT_SPRITE_ID_1:
+            case EVENT_SPRITE_ID_2:
                 o += br(llink("http://cdn.bungo.dmmgames.com" + image.path, assistant_name + "_alt" + (image.asset_no - 1)));
                 break;
             default:
@@ -339,6 +357,33 @@ function myRoom(content) {
     }
 
     o += "<br/>";
+    out.innerHTML = o;
+}
+
+/** This function displas links to all altfit sprites and previews from selected authors.
+  * + Grab info of the selected author
+  * + Collect list of altfit sprites found
+  * + Display links to their previews with matching numberings
+  * @version 1.0
+  * @since August 26, 2019
+  * @param {*} content The content found in the requesting URL
+  * @returns N/A
+  */
+function costume(content) {
+    json = JSON.parse(content);
+
+    for (var image of json.unit.images) {
+        switch (image.asset_no) {
+            case NORMAL_SPRITE_ID:
+                continue;
+                break;
+            case EVENT_SPRITE_ID_1:
+            case EVENT_SPRITE_ID_2:
+                o += br(llink("http://cdn.bungo.dmmgames.com" + image.path, assistant_name + "_weakened_weaponless"));
+                break;
+        }
+    }
+
     out.innerHTML = o;
 }
 
