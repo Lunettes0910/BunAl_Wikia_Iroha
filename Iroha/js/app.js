@@ -46,6 +46,9 @@ const PSEUDO_STAT_COUNT = 5;
 /** In-game ID for normal sprite */
 const NORMAL_SPRITE_ID = 1;
 
+/** In-game ID for weakened weaponless sprite */
+const WEAKENED_WEAPONLESS_SPRITE_ID = 8;
+
 /** In-game ID for blossoming outfit */
 const BLOSSOMING_SPRITE_ID = 2;
 
@@ -102,7 +105,8 @@ const eventNames = ["", "Purify &quot;The Five-Storied Pagoda&quot;", "An Encour
     "Co-Research with Chief Librarian ~Part Twelve~", "Research on Kusano Shinpei", "Rerun of &quot;Summer Daydream&quot;",
     "Chronicles of Galactic Railroad", "Aka and Ao&apos;s Study on Alchemy ~Third Years~", "Rerun of &quot;Towards the Truth&quot;",
     "", "Co-Research with Chief Librarian ~Part Thirteen~", "Purify &quot;The Final Problem&quot;",
-    "Rerun of &quot;Repair the Grimoire of Fate&quot;"
+    "Rerun of &quot;Repair the Grimoire of Fate&quot;", "", "Writers and Sengoku War Generals",
+    "Purify &quot;The Fourth Generation of Neo-Thought&quot;"
 ];
 
 /** Count of known events */
@@ -1777,8 +1781,8 @@ function recollection(recoContent) {
   * + Check if they are writers' name/ID, library personnel or stroll location
   * and translate accordingly
   * + Otherwise, return the untranslated name
-  * @version 1.4
-  * @since October 6, 2019
+  * @version 1.4.1
+  * @since October 31, 2019
   * @param {string} name A Japanese name or ID
   * @return {string} The parameter's English translation (if available), or the parameter unchanged
   */
@@ -1941,6 +1945,10 @@ function nameTranslate(name) {
         case 39:
             return "Kouda Rohan";
             break;
+        case "松岡譲":
+        case 40:
+            return "Matsuoka Yuzuru";
+            break;
         case "吉川英治":
         case 41:
             return "Yoshikawa Eiji";
@@ -2046,6 +2054,14 @@ function nameTranslate(name) {
         case "アルフォンス・エルリック":
             return "Alphone Elric";
             break;
+        case 3002:
+        case "伊達政宗":
+            return "Date Masamune";
+            break;
+        case 3003:
+        case "真田幸村":
+            return "Sanada Yukimura";
+            break;
 
         /* Library personnels */
         case "館長":
@@ -2082,8 +2098,8 @@ function nameTranslate(name) {
 /** This function converts the name & ID of a writer's VC into English.
   * + Check for known voice clips' names and IDs and translate accordingly
   * + Otherwise, return the VC as "No label"
-  * @version 1.1.2
-  * @since August 19, 2019
+  * @version 1.2
+  * @since October 31, 2019
   * @param {string} name A Japanese name or ID
   * @return {string} The parameter's English translation (if available), otherwise marked as "No label"
   */
@@ -2188,20 +2204,20 @@ function convertVoiceNum(voice_id) {
             return "tainted_battlestart";
             break;
         case 34:
-            return "attack1";
+            return "tainted_attack1";
             break;
         case 35:
-            return "attack2";
+            return "tainted_attack2";
             break;
         case 36:
         case "有碍書五":
             return "tainted_critical";
             break;
         case 37:
-            return "damaged1";
+            return "tainted_damaged1";
             break;
         case 38:
-            return "damaged2";
+            return "tainted_damaged2";
             break;
         case 39:
         case "有碍書六":
@@ -2272,6 +2288,9 @@ function convertVoiceNum(voice_id) {
         case "二周年":
             return "2nd_anniversary_login";
             break;
+        case "三周年":
+            return "3rd_anniversary_login";
+            break;
 
         /* Note: attack_ring voice clip does not have a consistent ID. */
         default:
@@ -2283,8 +2302,8 @@ function convertVoiceNum(voice_id) {
   * + Check if the Taint is a "failed" counterpart and parse accordingly
   * + Check if the Taint is a boss and return the parsed name immediately if so
   * + At this point, the Taint is a common enemy. Parse their name and type.
-  * @version 1.3
-  * @since August 20, 2019
+  * @version 1.4
+  * @since October 31, 2019
   * @param {string} jpName The Taint's Japanese name
   * @returns {string} The Taint's translated name (if found) or unchanged name in JP
   */
@@ -2344,17 +2363,21 @@ function taintTranslate(jpName) {
         case "隠匿の守護者":
             name += "Concealed Guardian";
             break;
+        case "侵蝕サレタ足軽":
+            name += "Foot Soldier";
+            break;
         default:
             name += onlyName;
             break;
     }
-    return name + taintType(jpName);
+
+    return (name == onlyName)? (jpName) : (name + taintType(jpName));
 }
 
 /** This function converts the name of a boss Taint into English.
   * + Translate the Taint's name into English if it is one of the boss listed in the function.
-  * @version 1.1
-  * @since June 17, 2019
+  * @version 1.2
+  * @since October 31, 2019
   * @param {string} jpName The Taint's Japanese name
   * @returns {string} The Taint's translated name if it is a boss, or an empty string (implying "false"). 
   */
@@ -2421,6 +2444,11 @@ function isBoss(jpName) {
         /* FMA collab boss */
         case "彷徨いし者":
             return "Wandering One";
+            break;
+
+        /* Sengoku Basara collab boss */
+        case "狂乱ノ将":
+            return "General of Madness";
             break;
 
         default:
@@ -2648,8 +2676,8 @@ function weaponTranslate(jpName) {
 /** This function converts the name of an event item point into English.
   * + Translate the item's name into English if it is one of the event points listed
   * in the function.
-  * @version 1.1.1
-  * @since August 19, 2019 ("Chronicles of Galactic Railroad" event)
+  * @version 1.1.2
+  * @since October 31, 2019 (SenBasa collab)
   * @param {string} jpName The item's Japanese name
   * @returns {string} The item's translated name (if found), or its Japanese name unchanged
   * @todo Compile a list of all event points
@@ -2666,14 +2694,14 @@ function eventItemTranslate(jpName) {
             return "Coffee";
             break;
 
-        /* "Chronicles of Galactic Railroad" event */
-        case "切符":
-            return "Tickets";
-            break;
-
         /* Co-Research series */
         case "金貨":
             return "Coins";
+            break;
+
+        /* Collab - Sengoku Basara */
+        case "兵力":
+            return "Military Force";
             break;
 
         /* Coup de Main events */
@@ -2689,6 +2717,11 @@ function eventItemTranslate(jpName) {
         /* Mad Banquet series */
         case "アミュレット":
             return "Amulets";
+            break;
+
+        /* "Chronicles of Galactic Railroad" event */
+        case "切符":
+            return "Tickets";
             break;
 
         /* Repair the Grimoire of Fate */

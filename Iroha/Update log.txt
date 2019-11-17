@@ -2,16 +2,16 @@ VERSION 2.4.3
 
 + New features & improvements:
   - Small improvements to the layout of data display
-  - Hirotsu Kazuo and other incremental updates added to the database
+  - Matsuoka Yuzuru, Hirotsu Kazuo and other incremental updates added to the database
 
 + Bug fixes:
   - Failed Taints with original name starting with "The" are displayed as "Failed The..."
+  - New/Unrecognized Taints' names are not displayed correctly
 
 + Acknowledged bug:
   - Blossoming pseudo-stat changes by node may not be updated correctly (main stats were intact)
 
 =======================================================
-
 VERSION 2.4.2
 
 + New features & improvements:
