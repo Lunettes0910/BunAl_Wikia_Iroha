@@ -73,7 +73,7 @@ const weekDays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Frida
 /** Months of a year */
 const months = ["", "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
-/** Event names, 3 per line, ordered by ID from the Recollection Register */
+/** Event names, 3 per line, ordered by ID from the Recollection Register ft. estimations for writer campaigns */
 const eventNames = ["", "Purify &quot;The Five-Storied Pagoda&quot;", "An Encouragement on Learning",
     "Research on Sakaguchi Ango", "Co-Research with Chief Librarian", "An Encouragement of Learning ~Cherry Blossom~",
     "Research on Arishima Takeo", "Purify &quot;The Sunless Street&quot;", "Research on Ibuse Masuji",
@@ -102,11 +102,13 @@ const eventNames = ["", "Purify &quot;The Five-Storied Pagoda&quot;", "An Encour
     "Spring Cleaning Mad Banquet", "", "Co-Research with Chief Librarian ~Part Eleven~",
     "Research on Miki Rofuu", "Purify &quot;The Moon Over the Mountain&quot;", "",
     "", "Blood Oath Mad Banquet", "",
-    "Co-Research with Chief Librarian ~Part Twelve~", "Research on Kusano Shinpei", "Rerun of &quot;Summer Daydream&quot;",
-    "Chronicles of Galactic Railroad", "Aka and Ao&apos;s Study on Alchemy ~Third Years~", "Rerun of &quot;Towards the Truth&quot;",
+    "Co-Research with Chief Librarian ~Part Twelve~", "Research on Kusano Shinpei", "",
+    "Chronicles of Galactic Railroad", "Aka and Ao&apos;s Study on Alchemy ~Third Years~", "",
     "", "Co-Research with Chief Librarian ~Part Thirteen~", "Purify &quot;The Final Problem&quot;",
-    "Rerun of &quot;Repair the Grimoire of Fate&quot;", "", "Writers and Sengoku War Generals",
-    "Purify &quot;The Fourth Generation of Neo-Thought&quot;"
+    "", "Research on Hirotsu Kazuo", "Writers and Sengoku War Generals",
+    "Purify &quot;The Fourth Generation of Neo-Thought&quot;", "Co-Research with Chief Librarian ~Part Fourteen~", "",
+    "Ensouled Book Research - Satomi Ton", "Chronicles of Galactic Railroad II", "Accomplish the Special Directive",
+    "", "Co-Research with Chief Librarian ~Part Fifteen~"
 ];
 
 /** Count of known events */
@@ -227,7 +229,8 @@ function (request) {
                     request.getContent(voiceImmediate);
                 }
                 else if (endpt[1].includes("supply")                    /* Dining Hall menu and recos */
-                    || endpt[1].includes("skits/dining")) {
+                    || endpt[1].includes("skits/dining")
+                    || endpt[1].includes("skits/birthday")) {
                     request.getContent(supply);
                 }
                 else if (endpt[1].includes("mypage/playSkit")) {        /* Limited-time recos at Library */
@@ -443,8 +446,7 @@ function voiceImmediate(content) {
   * + Print the Tainted Book's name
   * + Check for voice paths for recollections at the start of the delve
   * + Store the delving writers to a global array
-  * + Display hidden VCs from known writers, all sprites and VCs from new writers
-  * and new materials from ring-equipped writers
+  * + Display VCs from writers, all sprites and new materials from ring-equipped writers
   * @version 1.3.2
   * @since October 6, 2019
   * @param {*} content The content found in the requesting URL
@@ -468,6 +470,12 @@ function start(content) {
     /** An order counter to store the writers' names to other functions (thanks devs) */
     var writer_order = 1;
 
+    /* A variable checking if each writer is equipped with ring */
+    var ring_writer;
+
+    /* Counter variable for each writer's VCs */
+    var vc_counter = 0;
+
     for (var unit of json.deck.units) {
         /* Check if the slot is empty */
         if (unit == null)
@@ -475,42 +483,78 @@ function start(content) {
 
         writer_name = nameTranslate(unit.master.name);
 
-        if (unit.master.name !== writer_name) {
-            /* Ring writers have one extra VC */
-            if (unit.voices.length > DELVE_DEFAULT_VC_COUNT) {
-                o += p(unit.mst_unit_id + " " + writer_name + " (" + weaponTranslate(unit.category) + ")");
-                writer_name = writer_name.replace(/ /g, "_");
+        /* Display all VCs from new writers & only ring & hidden VCs from known writers */
+//      if (unit.master.name !== writer_name) {
+//          /* Ring writers have one extra VC */
+//          if (unit.voices.length > DELVE_DEFAULT_VC_COUNT) {
+//              o += p(unit.mst_unit_id + " " + writer_name + " (" + weaponTranslate(unit.category) + ")");
+//              writer_name = writer_name.replace(/ /g, "_");
+//
+//              o += b("Writer sprites: ");
+//              o += br(llink("http://cdn.bungo.dmmgames.com" + unit.images[1].path, writer_name + "_bookdelve_(ring).png"));
+//              o += br(llink("http://cdn.bungo.dmmgames.com" + unit.icons[3].path, writer_name + "_bookdelve_(ring)_prev.png"));
+//
+//              o += b("Battle VCs: ");
+//              o += br(llink("http://cdn.bungo.dmmgames.com" + unit.voices[DELVE_DEFAULT_VC_COUNT].path, writer_name + "_tainted_attackring"));
+//
+//          } else { /* Default heading for known writers with default weapon */
+//              o += p(unit.mst_unit_id + " " + writer_name);
+//              writer_name = writer_name.replace(/ /g, "_");
+//          }
+//
+//          /* Grabs hidden VCs for all known writers */
+//          o += b("Hidden VCs: ");
+//          for (var item of unit.voices)
+//              if (item.asset_no === DELVE_HIDDEN_VC_ID_1 || item.asset_no === DELVE_HIDDEN_VC_ID_2)
+//                  o += br(llink("http://cdn.bungo.dmmgames.com" + item.path, convertVoiceNum(item.asset_no)));
+//
+//      } else {
+//          o += p(unit.mst_unit_id + " " + writer_name);
+//          writer_name = writer_name.replace(/ /g, "_");
+//
+//          o += b("Writer sprites: ");
+//          o += br(llink("http://cdn.bungo.dmmgames.com" + unit.images[0].path, writer_name + "_normal.png"));
+//          o += br(llink("http://cdn.bungo.dmmgames.com" + unit.images[1].path, writer_name + "_bookdelve.png"));
+//          o += br(llink("http://cdn.bungo.dmmgames.com" + unit.images[2].path, writer_name + "_weakened.png"));
+//          o += b("Battle VCs: ");
+//          for (var item of unit.voices)
+//              o += br(llink("http://cdn.bungo.dmmgames.com" + item.path, convertVoiceNum(item.asset_no)));
+//      }
 
-                o += b("Writer sprites: ");
-                o += br(llink("http://cdn.bungo.dmmgames.com" + unit.images[1].path, writer_name + "_bookdelve_(ring).png"));
-                o += br(llink("http://cdn.bungo.dmmgames.com" + unit.icons[3].path, writer_name + "_bookdelve_(ring)_prev.png"));
+        /* Display all VCs (delve, ring if possible, hidden) from all writers */
+        ring_writer = unit.voices.length > DELVE_DEFAULT_VC_COUNT;
 
-                o += b("Battle VCs: ");
-                o += br(llink("http://cdn.bungo.dmmgames.com" + unit.voices[DELVE_DEFAULT_VC_COUNT].path, writer_name + "_tainted_attackring"));
+        o += p(unit.mst_unit_id + " " + writer_name + ((ring_writer) ? " (" + weaponTranslate(unit.category) + ")" : ""));
+        writer_name = writer_name.replace(/ /g, "_");
 
-            } else { /* Default heading for known writers with default weapon */
-                o += p(unit.mst_unit_id + " " + writer_name);
-                writer_name = writer_name.replace(/ /g, "_");
+        o += b("Writer sprites: ");
+        o += br(llink("http://cdn.bungo.dmmgames.com" + unit.images[0].path, writer_name + "_normal.png"));
+        o += br(llink("http://cdn.bungo.dmmgames.com" + unit.images[1].path, writer_name + ((ring_writer) ? "_bookdelve_(ring).png" : "_bookdelve.png")));
+        o += br(llink("http://cdn.bungo.dmmgames.com" + unit.images[2].path, writer_name + "_weakened.png"));
+        if (ring_writer)
+            o += br(llink("http://cdn.bungo.dmmgames.com" + unit.icons[3].path, writer_name + "_bookdelve_(ring)_prev.png"));
+
+        /* Reset the VC counter */
+        vc_counter = 0;
+
+        o += b("Battle VCs: ");
+
+        for (vc_counter = 0; vc_counter <= DELVE_DEFAULT_VC_COUNT; vc_counter++) {           
+            if (vc_counter == DELVE_DEFAULT_VC_COUNT)
+                o += (ring_writer) ? br(llink("http://cdn.bungo.dmmgames.com" + unit.voices[vc_counter].path, writer_name + "_tainted_attackring")) : "";
+            else {
+                if (unit.voices[vc_counter].asset_no === DELVE_HIDDEN_VC_ID_1 || unit.voices[vc_counter].asset_no === DELVE_HIDDEN_VC_ID_2)
+                    continue;
+
+                o += br(llink("http://cdn.bungo.dmmgames.com" + unit.voices[vc_counter].path, writer_name + "_" + convertVoiceNum(unit.voices[vc_counter].asset_no)));
             }
-
-            /* Grabs hidden VCs for all known writers */
-            o += b("Hidden VCs: ");
-            for (var item of unit.voices)
-                if (item.asset_no === DELVE_HIDDEN_VC_ID_1 || item.asset_no === DELVE_HIDDEN_VC_ID_2)
-                    o += br(llink("http://cdn.bungo.dmmgames.com" + item.path, convertVoiceNum(item.asset_no)));
-
-        } else {
-            o += p(unit.mst_unit_id + " " + writer_name);
-            writer_name = writer_name.replace(/ /g, "_");
-
-            o += b("Writer sprites: ");
-            o += br(llink("http://cdn.bungo.dmmgames.com" + unit.images[0].path, writer_name + "_normal.png"));
-            o += br(llink("http://cdn.bungo.dmmgames.com" + unit.images[1].path, writer_name + "_bookdelve.png"));
-            o += br(llink("http://cdn.bungo.dmmgames.com" + unit.images[2].path, writer_name + "_weakened.png"));
-            o += b("Battle VCs: ");
-            for (var item of unit.voices)
-                o += br(llink("http://cdn.bungo.dmmgames.com" + item.path, convertVoiceNum(item.asset_no)));
         }
+
+        /* Grabs hidden VCs for all known writers */
+        o += b("Hidden VCs: ");
+        for (var item of unit.voices)
+            if (item.asset_no === DELVE_HIDDEN_VC_ID_1 || item.asset_no === DELVE_HIDDEN_VC_ID_2)
+                o += br(llink("http://cdn.bungo.dmmgames.com" + item.path, convertVoiceNum(item.asset_no)));
 
         /* Store their ID to other book delve functions */
         writers[writer_order++] = unit.mst_unit_id;
@@ -1651,7 +1695,9 @@ function diningRecos(recoContent) {
 
         reco_data += "<code>|wr = " + wr_name + "</code><br/>";
         reco_data += "<code>|jp = " + bday_quote + "</code><br/>";
-        reco_data += "<code>|vo = " + llink("http://cdn.bungo.dmmgames.com" + recoContent.adv.voice_paths[0], wr_name + "_dininghall_birthday") + "</code><br/><code>}}</code>";
+
+        /* Check birthday cake image name to determine birthday line number */
+        reco_data += "<code>|vo = " + llink("http://cdn.bungo.dmmgames.com" + recoContent.adv.voice_paths[0], wr_name + (recoContent.food_path.includes("0001_01.png") ? "_dininghall_birthday" : "_dininghall_birthday2")) + "</code><br/><code>}}</code>";
     } else {
         /** Placeholder for splitting the meal name from reco's number */
         var reco_name = recoContent.title.split(/[０-９]/g);
@@ -1781,8 +1827,8 @@ function recollection(recoContent) {
   * + Check if they are writers' name/ID, library personnel or stroll location
   * and translate accordingly
   * + Otherwise, return the untranslated name
-  * @version 1.4.1
-  * @since October 31, 2019
+  * @version 1.4.2
+  * @since January 9, 2020
   * @param {string} name A Japanese name or ID
   * @return {string} The parameter's English translation (if available), or the parameter unchanged
   */
@@ -2026,6 +2072,10 @@ function nameTranslate(name) {
         case 66:
             return "Kusano Shinpei";
             break;
+        case "里見弴":
+        case 68:
+            return "Satomi Ton";
+            break;
         case "高浜虚子":
         case 74:
             return "Takahama Kyoshi";
@@ -2046,6 +2096,26 @@ function nameTranslate(name) {
         case 90:
             return "Lewis Carroll";
             break;
+
+        /* Devs when */
+        case "有島生馬":
+            return "Arishima Ikuma";
+            break;
+        case "三島由紀夫":
+            return "Mishima Yukio";
+            break;
+        case "斎藤茂吉":
+            return "Saitou Mokichi";
+            break;
+        case "徳富蘇峰":
+            return "Tokutomi Sohou";
+            break;
+        case "与謝野鉄幹":
+        case "與謝野鐵幹":
+            return "Yosano Tekkan";
+            break;
+
+        /* Collab characters */
         case "エド":
         case "エドワード・エルリック":
             return "Edward Elric";
@@ -2409,7 +2479,7 @@ function isBoss(jpName) {
             break;
 
         /* TO-4 boss */
-        case "渾淆装の少年無窮":
+        case "渾淆装の少年　無窮":
             return "Boy of Chaotic Attire - Immortal";
             break;
 

@@ -1,8 +1,13 @@
 VERSION 2.4.3
 
 + New features & improvements:
+  - Accomodate new birthday recollections with proper VC naming
+  - Rollback to gather known VCs in delves
   - Small improvements to the layout of data display
-  - Matsuoka Yuzuru, Hirotsu Kazuo and other incremental updates added to the database
+
+  - Updates to the built-in database:
+	~ New & confirmed writers
+	~ Event list: Up to CORE 15
 
 + Bug fixes:
   - Failed Taints with original name starting with "The" are displayed as "Failed The..."
