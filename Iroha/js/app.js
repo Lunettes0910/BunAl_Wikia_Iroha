@@ -153,16 +153,10 @@ var writerKaika = new writerBlossoming(0, 0, 0, 0, 0, 0, 0, 0, 0);
 
 /* Listener implementation */
 chrome.devtools.network.onRequestFinished.addListener(
-/** This local function implements a listener on the browser's requests
-  * @version 1.0.4
-  * @since June 24, 2019
-  * @param {*} request The browser's request for game content
-  * @returns N/A
-  */
 function (request) {
     /** A placeholder to get the request's specific section */
     var endpt;
-    endpt = request.request.url.match(/http:\/\/game\.bungo\.dmmgames\.com\/v1\/(.*)/);
+    endpt = request.request.url.match(/https:\/\/game\.bungo\.dmmgames\.com\/v1\/(.*)/);
     if (endpt !== null) {
         switch (endpt[1]) {
             /* Immediate VC requests for Dining Hall and assistant change */
