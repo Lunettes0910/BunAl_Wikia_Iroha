@@ -12,8 +12,7 @@
     * [ ] Blossoming stat tracking is still not working correctly
 
 ## About
-* ***Testing version:*** 2.4.3
-* ***Latest released version:*** 2.4.2 ~*(probably final for a long time)*~ *(I lied)*
+* ***Latest released version:*** 2.5
 
 This project is a small extension used to collect materials and data from the Japanese browser game *Bungo to Alchemist* (lit. *Writers and Alchemists*). The plugin was written to support the maintenance and update of [the game's Wikia](https://bungo.fandom.com) and has been passed down among the Wikia's staff.
 

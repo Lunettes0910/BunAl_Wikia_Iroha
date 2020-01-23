@@ -1,3 +1,17 @@
+VERSION 2.5.0
+
++ New features & improvements:
+  - Collect pop-ups and banners upon login & opening main game screen
+  - Collect birthday recollection upon purchase in Shop
+  - Collect unlocked birthday letters in the Inventory
+  - Updates to the built-in database
+    ~ Edgar Allan Poe
+	~ Event & Taint data: Up to C-shelf
+
++ Bug fixes:
+  - Taints with no numbering in their names are not translated.
+
+=======================================================
 VERSION 2.4.3.1
 
 + Bug fixes:

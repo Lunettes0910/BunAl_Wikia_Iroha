@@ -108,7 +108,7 @@ const eventNames = ["", "Purify &quot;The Five-Storied Pagoda&quot;", "An Encour
     "", "Research on Hirotsu Kazuo", "Writers and Sengoku War Generals",
     "Purify &quot;The Fourth Generation of Neo-Thought&quot;", "Co-Research with Chief Librarian ~Part Fourteen~", "",
     "Ensouled Book Research - Satomi Ton", "Chronicles of Galactic Railroad II", "Accomplish the Special Directive",
-    "", "Co-Research with Chief Librarian ~Part Fifteen~"
+    "", "Co-Research with Chief Librarian ~Part Fifteen~", "Purify &quot;The Fall of the House of Usher&quot;"
 ];
 
 /** Count of known events */
@@ -190,9 +190,17 @@ function (request) {
                     request.getContent(login);
                 }
                 else if (endpt[1].includes("page/mypage")               /* Library */
-                    || endpt[1].includes("page/mission")                /* Reserach */
-                    || endpt[1].includes("page/shop")) {                /* Shop */
+                    || endpt[1].includes("page/mission")) {             /* Reserach */
                     request.getContent(assistant);
+                }
+                else if (endpt[1].includes("page/shop")) {              /* Shop */
+                    request.getContent(shop);
+                }
+                else if (endpt[1].includes("callback")) {               /* Shop recos */
+                    request.getContent(giftRecos);
+                }
+                else if (endpt[1].includes("items")) {                  /* Inventory item */
+                    request.getContent(inventoryItem);
                 }
                 else if (endpt[1].includes("page/myroom")) {            /* Office */
                     request.getContent(myRoom);
@@ -232,6 +240,9 @@ function (request) {
                 }
                 else if (endpt[1].includes("page/event/")) {            /* Event recos played from the event page */
                     request.getContent(delveRecos);
+                }
+                else if (endpt[1].includes("foreign/stages/")) {        /* Event recos played from foreign shelves */
+                    request.getContent(foreignRecos);
                 }
                 else if (endpt[1].includes("skits/main/")) {            /* In-delve recos (old?) */
                     request.getContent(mainRecos);
@@ -283,13 +294,14 @@ function login(content) {
     out.innerHTML = o;
 }
 
-/** This function prints content grabbed from the assistant, including VCs and
-  * recollections playing upon login.
+/** This function prints content grabbed from the assistant, including VCs,
+  * recollections, pop-ups and banners playing upon login.
   * + Return immediately if an empty duplicate request encountered
   * + Display the autoplaying recollection if detected
   * + Display the assistant's info and all VCs found
-  * @version 2.0
-  * @since July 26, 2019
+  * 
+  * @version 2.1
+  * @since January 22, 2020
   * @param {*} content The content found in the requesting URL
   * @returns N/A
   */
@@ -305,6 +317,38 @@ function assistant(content) {
 
     /* Get all VCs from the assistant */
     o += headerVoice(json.header);
+
+    /* Check for announcement pop-ups */
+    if (json.advertisements != null && json.advertisements.length != 0) {
+        var popupCounter = 0;
+        o += b("<i>Pop-up banners:</i>");
+
+        for (var popup of json.advertisements)
+            o += br(llink("http://cdn.bungo.dmmgames.com" + popup.image, "#" + ++popupCounter));
+    }
+
+    /* Check for current banners */
+    if (json.banner != null && json.banner.length != 0) {
+        var bannerEventCounter = 0;
+        var bannerName = "";
+        o += b("<i>Current banners:</i>")
+
+        for (var banner of json.banner) {
+            switch (banner.url) {
+                case "yukonsho":
+                    bannerName = "Summoning campaign";
+                    break;
+                case "shousouChoice":
+                    bannerName = "Memoria feature";
+                    break;
+            }
+
+            if (banner.url.includes("event"))
+                bannerName = "Event #" + ++bannerEventCounter;
+
+            o += br(llink("http://cdn.bungo.dmmgames.com" + banner.list_image_path, bannerName));
+        }
+    }
 
     out.innerHTML = o;
 }
@@ -361,7 +405,7 @@ function myRoom(content) {
     out.innerHTML = o;
 }
 
-/** This function displas links to all altfit sprites and previews from selected authors.
+/** This function displays links to all altfit sprites and previews from selected authors.
   * + Grab info of the selected author
   * + Collect list of altfit sprites found
   * + Display links to their previews with matching numberings
@@ -388,12 +432,57 @@ function costume(content) {
     out.innerHTML = o;
 }
 
+/** This function displays links to birthday gift sets' icons & assistant's shop VC.
+  * + Displays link to assistant's shop VC
+  * + Display links to all birthday gift sets' icons available in Shop
+  * @version 1.0
+  * @since January 21, 2020
+  * @param {*} content The content found in the requesting URL
+  * @returns N/A
+  */
+function shop(content) {
+    json = JSON.parse(content);
+
+    if (json.header == null)
+        return;
+
+    o += headerVoice(json.header);
+
+    var giftSetCount = 0;
+
+    for (var item of json.shop.sale) {
+        if (item.name == "贈り物セット") {
+            o += b("<i>Birthday Gift Set #" + ++giftSetCount + ":</i> ") + llink("http://cdn.bungo.dmmgames.com" + item.image, "icon");
+        }
+    }
+
+    out.innerHTML = o;
+}
+
+/** This function displays letters stored in the librarian's inventory.
+  * @version 1.0
+  * @since January 21, 2020
+  * @param {*} content The content found in the requesting URL
+  * @returns N/A
+  */
+function inventoryItem(content) {
+    json = JSON.parse(content);
+
+    if (json.letter == null)
+        return;
+
+    o += b("<i>Thank-You Letter from " + nameTranslate(json.letter.mst_unit_from.name) + ":</i></br/>");
+    o += letter(json.letter, true);
+    
+    out.innerHTML = o;
+}
+
 /** This function grabs voice clips from the assistant
   * + Return immediately if an empty duplicate request encountered
   * + Parse the name and ID of the assistant
   * + Loop through and display all VCs found
-  * @version 2.0.1
-  * @since October 6, 2019
+  * @version 2.0.2
+  * @since January 21, 2020
   * @param {*} assistant The current assistant in the Library
   * @returns {string} The assistant's name and link to their VCs
   */
@@ -407,7 +496,7 @@ function headerVoice(assistant) {
 
         /* Display all VCs found */
         for (var item of assistant.leader_unit.voices)
-            assistant_voice += br(llink("http://cdn.bungo.dmmgames.com" + item.path, convertVoiceNum(item.asset_no)));
+            assistant_voice += br(llink("http://cdn.bungo.dmmgames.com" + item.path, nameTranslate(assistant.leader_unit.master.name).replace(" ", "_") + "_" + convertVoiceNum(item.asset_no)));
     }
 
     return assistant_voice;
@@ -565,8 +654,8 @@ function start(content) {
   * + Search and print special dual attack quotes and final words if found
   * + Print the items collected (with translated names)
   * + Display the recollection if it plays after purification
-  * @version 2.1
-  * @since June 19, 2019
+  * @version 2.1.1
+  * @since January 23, 2020
   * @param {*} content The content found in the requesting URL
   * @returns N/A
   * @see battlePhase
@@ -578,9 +667,16 @@ function battle(content) {
     if (json.result != null) {
         /* Display Taints */
         o += b("Enemies: ");
+        var item, taintName;
+
         for (var i in json.result.enemies) {
             item = json.result.enemies[i];
-            o += br(llink("http://cdn.bungo.dmmgames.com" + item.img_path, taintTranslate(item.name)) + ", exp: " + item.exp + ", id: " + item.id);
+
+            taintName = nonNumberTaint(item);
+            if (taintName == "")
+                taintName = taintTranslate(item.name);
+
+            o += br(llink("http://cdn.bungo.dmmgames.com" + item.img_path, taintName) + ", exp: " + item.exp + ", id: " + item.id);
         }
 
         /* Look for dual attack lines and final words lines */
@@ -1088,10 +1184,10 @@ function album(content) {
 /** This function prints a letter's content, including JP letter, sender & receiver
   * (assistant) and assistant's letter voice clip.
   * + Check for the supposed receiver, display their name if it's a specific writer
-  * + Parse the letter's content to Wikia code depending on the sender's name
+  * + Parse the letter's content
   * + Display a link to the assistant's letter VC
-  * @version 1.1.16
-  * @since June 17, 2019
+  * @version 1.1.17
+  * @since January 21, 2020
   * @param {*} content The content found in the requesting URL
   * @returns N/A
   */
@@ -1101,16 +1197,31 @@ function letters(content) {
     /* Parse the receiver's name if it's the assistant */
     o += (json.letter.mst_unit_to != null)? b("Letter to " + nameTranslate(json.letter.mst_unit_to.name) + ":<br/>") : b("Letter:<br/>");
 
-    /* Parse the letter's content to Wikia code depending on the sender's information */
-    if (json.letter.mst_unit_from != null)
-        o += "<code>{{Letter<br/></code><code>|fr = " + nameTranslate(json.letter.mst_unit_from.name) + "</code><br/><code>|jp = " + json.letter.text.replace(/\\n/g, "&lt;br&sol;&gt;</code><br/><code>").replace(/(\s)*/g, "") + "</code><br/><code>|en = </code><br/><code>}}</code>";
-
-    if (json.letter.npc != null)
-        o += "<code>{{Letter<br/></code><code>|fr = " + nameTranslate(json.letter.npc.name) + "</code><br/><code>|jp = " + json.letter.text.replace(/\\n/g, "&lt;br&sol;&gt;</code><br/><code>").replace(/(\s)*/g, "") + "</code><br/><code>|en = </code><br/><code>}}</code>";
+    o += letter(json.letter, false);
 
     /* Grab the assistant's letter VC */
     o += br(llink("http://cdn.bungo.dmmgames.com" + json.voice, "Assistant's letter voice clip"));
     out.innerHTML = o;
+}
+
+/** This function prints a letter's content in Wikia codes.
+  * + Check for the sender information and parse the content accordingly
+  * @version 1.0
+  * @since January 21, 2020
+  * @param {JSON} letter The letter's content, parsed as JSON
+  * @param {boolean} spoiler An indicator whether the letter's content should be hidden as spoilers
+  * @return {string} The letter content parsed as Wikia codes 
+  */
+function letter(letter, spoiler) {
+    var letterText = "";
+
+    if (letter.mst_unit_from != null)
+        letterText += "<code>{{Letter<br/></code><code>|fr = " + nameTranslate(letter.mst_unit_from.name) + "</code><br/><code>|jp = " + ((spoiler) ? "&lt;span class=&quot;spoiler&quot;&gt;" : "") + letter.text.replace(/\\n/g, "&lt;br&sol;&gt;</code><br/><code>").replace(/(\s)*/g, "") + ((spoiler) ? "&lt;&sol;span&gt;" : "") + "</code><br/><code>|en = " + ((spoiler) ? "&lt;span class&equals;&quot;spoiler&quot;&gt;&lt;&sol;span&gt;" : "") + "</code><br/><code>}}</code>";
+
+    if (letter.npc != null)
+        letterText += "<code>{{Letter<br/></code><code>|fr = " + nameTranslate(letter.npc.name) + "</code><br/><code>|jp = " + ((spoiler) ? "&lt;span class=&quot;spoiler&quot;&gt;" : "") + letter.text.replace(/\\n/g, "&lt;br&sol;&gt;</code><br/><code>").replace(/(\s)*/g, "") + ((spoiler) ? "&lt;&sol;span&gt;" : "") + "</code><br/><code>|en = " + ((spoiler) ? "&lt;span class&equals;&quot;spoiler&quot;&gt;&lt;&sol;span&gt;" : "") + "</code><br/><code>}}</code>";
+
+    return letterText;
 }
 
 /** This function displays stroll VCs from encountered writers.
@@ -1482,8 +1593,8 @@ function ringMemoria(content) {
   * + Return immediately if empty duplicated request encountered
   * + Otherwise, continue grabbing the ring's basic info as Wikia codes
   * + Parse the ring's memories and letters as Wikia codes
-  * @version 1.0.1
-  * @since June 19, 2019
+  * @version 1.0.2
+  * @since January 21, 2020
   * @param {*} content The content found in the requesting URL
   * @returns N/A
   */
@@ -1542,11 +1653,8 @@ function ringMemoria(content) {
     /* Parse the letters if unlocked */
     if (json.ring_letters != null && json.ring_letters.length != 0) {
         for (var ring_letter of json.ring_letters) {
-            o += b("<i>Letter #"+ ring_letter.order_no +":</i><br/>");
-
-            /* Codes for a ring's letter */
-            o += "<code>{{Letter</code><br/>";
-            o += "<code>|fr = " + nameTranslate(ring_letter.mst_unit_from.name) + "</code><br/><code>|jp = &lt;span class=&quot;spoiler&quot;&gt;" + ring_letter.text.replace(/\\n/g, "&lt;br&sol;&gt;</code><br/><code>") + "&lt;&sol;span&gt;</code><br/><code>|en = &lt;span class&equals;&quot;spoiler&quot;&gt;&lt;&sol;span&gt;</code><br/><code>}}</code>";
+            o += b("<i>Letter #" + ring_letter.order_no + ":</i><br/>");
+            o += letter(ring_letter, true);
         }
     }
     out.innerHTML = o;
@@ -1580,6 +1688,38 @@ function delveRecos(content) {
 
     /* Check for voice paths and prints recollection lines if found */
     o += (json.adv == null || json.adv == 0) ? "" : recollection(json.adv[0]);
+
+    out.innerHTML = o;
+}
+
+/** This function collects and displays recollections playable from foreign shelves.
+  * @version 1.0
+  * @since Janurary 22, 2020
+  * @param {any} content The content found in the requesting URL
+  * @return N/A
+  * @see recollection
+  */
+function foreignRecos(content) {
+    json = JSON.parse(content);
+
+    /* Check for voice paths and prints recollection lines if found */
+    o += (json.skit == null || json.skit == 0) ? "" : recollection(json.skit);
+
+    out.innerHTML = o;
+}
+
+/** This function collects and displays recollections purchased from the Shop.
+  * @version 1.0
+  * @since Janurary 22, 2020
+  * @param {any} content The content found in the requesting URL
+  * @return N/A
+  * @see recollection
+  */
+function giftRecos(content) {
+    json = JSON.parse(content);
+
+    /* Check for voice paths and prints recollection lines if found */
+    o += (json.skit_data == null || json.skit_data == 0) ? "" : recollection(json.skit_data.skit[0]);
 
     out.innerHTML = o;
 }
@@ -1821,8 +1961,8 @@ function recollection(recoContent) {
   * + Check if they are writers' name/ID, library personnel or stroll location
   * and translate accordingly
   * + Otherwise, return the untranslated name
-  * @version 1.4.2
-  * @since January 9, 2020
+  * @version 1.4.2.1
+  * @since January 22, 2020
   * @param {string} name A Japanese name or ID
   * @return {string} The parameter's English translation (if available), or the parameter unchanged
   */
@@ -2082,7 +2222,13 @@ function nameTranslate(name) {
         case 78:
             return "Tokuda Shuusei";
             break;
+        case "エドガー・アラン・ポー":
+        case "ポー":
+        case 87:
+            return "Edgar Allan Poe";
+            break;
         case "コナン・ドイル":
+        case "ドイル":
         case 89:
             return "Conan Doyle";
             break;
@@ -2366,8 +2512,8 @@ function convertVoiceNum(voice_id) {
   * + Check if the Taint is a "failed" counterpart and parse accordingly
   * + Check if the Taint is a boss and return the parsed name immediately if so
   * + At this point, the Taint is a common enemy. Parse their name and type.
-  * @version 1.4
-  * @since October 31, 2019
+  * @version 1.4.1
+  * @since January 22, 2020 (C-series taints)
   * @param {string} jpName The Taint's Japanese name
   * @returns {string} The Taint's translated name (if found) or unchanged name in JP
   */
@@ -2376,7 +2522,7 @@ function taintTranslate(jpName) {
     var name = "";
 
     /* A placeholder for Failed Taints' name correction */
-    var isFailed = false;
+    isFailed = false;
 
     /* Check if the Taint is a Failed counterpart */
     if (jpName.substr(0, 3) == "缺いた") {
@@ -2424,12 +2570,12 @@ function taintTranslate(jpName) {
         case "歩まされぬ獣使い":
             name += "Crippling Beast Master";
             break;
+
+        /* Collab & Foreign events */
         case "隠匿の守護者":
             name += "Concealed Guardian";
             break;
-        case "侵蝕サレタ足軽":
-            name += "Foot Soldier";
-            break;
+
         default:
             name += onlyName;
             break;
@@ -2571,6 +2717,116 @@ function taintType(jpName) {
         default:
             return onlyNo;
     }
+}
+
+/** This function converts a non-numbered Taint into English.
+ * + Translate the Taint's name into English if it is a non-numbered type.
+ * + Add Taint's numbering according to its ID
+ * @version 1.0
+ * @since January 23, 2020
+ * @param {any} taint The checked Taint
+ * @return {string} The Taint's translated name with proper numbering, or an empty string if not a non-numbered Taint.
+ */
+function nonNumberTaint(taint) {
+    var name = "";
+
+    switch (taint.name) {
+        case "侵蝕サレタ足軽":
+            name += "Foot Soldier";
+
+//          I forgot to keep track of SenBasa so IDs were not documented pls forgive me
+//
+//          switch (taint.id) {
+//              case 97:
+//                  name += " No. 0";
+//                  break;
+//
+//              case 109:
+//                  name += " No. 1";
+//                  break;
+//
+//              case 110:
+//                  name += " No. 2";
+//                  break;
+//
+//              case 112:
+//                  name += " No. 3";
+//                  break;
+//          }
+
+            break;
+
+        case "忍び寄るモノ":
+            name += "Sneaking Being";
+
+            switch (taint.id) {
+                case 119:
+                    name += " No. 0";
+                    break;
+
+                case 120:
+                    name += " No. 1";
+                    break;
+
+                case 121:
+                    name += " No. 2";
+                    break;
+
+                case 122:
+                    name += " No. 3";
+                    break;
+            }
+
+            break;
+
+        case "繰り返すモノ":
+            name += "Reiterating Being";
+
+            switch (taint.id) {
+                case 123:
+                    name += " No. 0";
+                    break;
+
+                case 124:
+                    name += " No. 1";
+                    break;
+
+                case 125:
+                    name += " No. 2";
+                    break;
+
+                case 126:
+                    name += " No. 3";
+                    break;
+            }
+
+            break;
+
+        case "蘇るモノ":
+            name += "Resurrected Being";
+
+            switch (taint.id) {
+                case 127:
+                    name += " No. 0";
+                    break;
+
+                case 128:
+                    name += " No. 1";
+                    break;
+
+                case 129:
+                    name += " No. 2";
+                    break;
+
+                case 130:
+                    name += " No. 3";
+                    break;
+            }
+
+            break;
+    }
+
+    return name;
 }
 
 /** This function converts the name of a drop item into English.
@@ -2740,8 +2996,8 @@ function weaponTranslate(jpName) {
 /** This function converts the name of an event item point into English.
   * + Translate the item's name into English if it is one of the event points listed
   * in the function.
-  * @version 1.1.2
-  * @since October 31, 2019 (SenBasa collab)
+  * @version 1.1.3
+  * @since January 22, 2020 (100 People rerun)
   * @param {string} jpName The item's Japanese name
   * @returns {string} The item's translated name (if found), or its Japanese name unchanged
   * @todo Compile a list of all event points
@@ -2778,14 +3034,19 @@ function eventItemTranslate(jpName) {
             return "Sealed Gears";
             break;
 
+        /* "Chronicles of Galactic Railroad" series */
+        case "切符":
+            return "Tickets";
+            break;
+
         /* Mad Banquet series */
         case "アミュレット":
             return "Amulets";
             break;
 
-        /* "Chronicles of Galactic Railroad" event */
-        case "切符":
-            return "Tickets";
+        /* One Hundred People, One Poem Each */
+        case "歌のかけら":
+            return "Poem Fragments";
             break;
 
         /* Repair the Grimoire of Fate */
@@ -2808,8 +3069,8 @@ function eventItemTranslate(jpName) {
 /** This function converts the name of a book into English.
   * + Translate the item's name into English if it is one of the books listed
   * in the function.
-  * @version 1.0.1
-  * @since July 18, 2019
+  * @version 1.0.2
+  * @since January 22, 2020
   * @param {string} jpName The item's Japanese name
   * @returns {string} The item's translated name (if found), or its Japanese name unchanged
   * @todo Figure out how to translate books from Sealed Library and get to display it
@@ -2982,8 +3243,14 @@ function bookTranslate(jpName) {
             break;
 
         /* Sealed Library */
-        case "不思議の国のアリス四":
+        case "不思議の国のアリス":
             return "A-series - Alice's Adventures in Wonderland";
+            break;
+        case "ホームズ最後の事件":
+            return "B-series - Holmes' Final Problem";
+            break;
+        case "アッシャー家の崩壊":
+            return "C-series - The Fall of the House of Usher";
             break;
     }
 
