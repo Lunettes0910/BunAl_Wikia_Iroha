@@ -737,8 +737,7 @@ function battlePhase(phaseContent) {
                 if (writer.lostVoice != null) {
                     phase_data += b("Final words: ");
 
-                    phase_data += br(llink("http://cdn.bungo.dmmgames.com"+ writer.lostVoice,
-                    writers[writer.number] + "_tainted_finalwords"));
+                    phase_data += br(llink("http://cdn.bungo.dmmgames.com"+ writer.lostVoice, nameTranslate(writers[writer.number]) + "_tainted_finalwords"));
                 }
     }
 
@@ -2469,16 +2468,16 @@ function convertVoiceNum(voice_id) {
             return "N/A";
             break;
         case 55:
-            return "damagedweakened";
+            return "tainted_damagedweakened";
             break;
         case 56:
-            return "desperation";
+            return "tainted_desperation";
             break;
         case 57:
-            return "attackweakened";
+            return "tainted_attackweakened";
             break;
         case 58:
-            return "dualweakened";
+            return "tainted_dualweakened";
             break;
         case 60:
             return "weakened_1";
