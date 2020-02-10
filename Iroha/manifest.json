@@ -1,6 +1,6 @@
 ﻿{
   "manifest_version": 2,
-  "version": "2.5.0.1",
+  "version": "2.5.0.2",
 
   "name": "Iroha",
   "description": "Collect data from the Japanese literature-themed DMM online game 文豪とアルケミスト (lit. 'Writers & Alchemist').",

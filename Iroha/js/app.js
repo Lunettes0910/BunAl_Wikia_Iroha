@@ -330,16 +330,21 @@ function assistant(content) {
     /* Check for current banners */
     if (json.banner != null && json.banner.length != 0) {
         var bannerEventCounter = 0;
-        var bannerName = "";
+        var bannerName;
         o += b("<i>Current banners:</i>")
 
         for (var banner of json.banner) {
+            bannerName = "";
+
             switch (banner.url) {
                 case "yukonsho":
                     bannerName = "Summoning campaign";
                     break;
                 case "shousouChoice":
                     bannerName = "Memoria feature";
+                    break;
+                case "kenkyu":
+                    bannerName = "Research event";
                     break;
             }
 
