@@ -108,7 +108,9 @@ const eventNames = ["", "Purify &quot;The Five-Storied Pagoda&quot;", "An Encour
     "", "Research on Hirotsu Kazuo", "Writers and Sengoku War Generals",
     "Purify &quot;The Fourth Generation of Neo-Thought&quot;", "Co-Research with Chief Librarian ~Part Fourteen~", "",
     "Ensouled Book Research - Satomi Ton", "Chronicles of Galactic Railroad II", "Accomplish the Special Directive",
-    "", "Co-Research with Chief Librarian ~Part Fifteen~", "Purify &quot;The Fall of the House of Usher&quot;"
+    "", "Co-Research with Chief Librarian ~Part Fifteen~", "Purify &quot;The Fall of the House of Usher&quot;",
+    "Research on Edgar Allan Poe", "", "Accomplish the Special Directives 2",
+    "Aka and Ao&apos;s Study on Alchemy ~Fourth Years~"
 ];
 
 /** Count of known events */
@@ -1965,8 +1967,8 @@ function recollection(recoContent) {
   * + Check if they are writers' name/ID, library personnel or stroll location
   * and translate accordingly
   * + Otherwise, return the untranslated name
-  * @version 1.4.2.1
-  * @since January 22, 2020
+  * @version 1.4.2.2
+  * @since March 8, 2020
   * @param {string} name A Japanese name or ID
   * @return {string} The parameter's English translation (if available), or the parameter unchanged
   */
@@ -2231,6 +2233,12 @@ function nameTranslate(name) {
         case 87:
             return "Edgar Allan Poe";
             break;
+        case "H・P・ラヴクラフト":
+        case "ラヴクラフト":
+        case "ハワード":
+        case 88:
+            return "H. P. Lovecraft";
+            break;
         case "コナン・ドイル":
         case "ドイル":
         case 89:
@@ -2312,8 +2320,8 @@ function nameTranslate(name) {
 /** This function converts the name & ID of a writer's VC into English.
   * + Check for known voice clips' names and IDs and translate accordingly
   * + Otherwise, return the VC as "No label"
-  * @version 1.2
-  * @since October 31, 2019
+  * @version 1.2.1
+  * @since March 8, 2020
   * @param {string} name A Japanese name or ID
   * @return {string} The parameter's English translation (if available), otherwise marked as "No label"
   */
@@ -2340,8 +2348,11 @@ function convertVoiceNum(voice_id) {
         case 9:
             return "library_summer";
             break;
-        case 11:
+        case 10:
             return "library_autumn";
+            break;
+        case 11:
+            return "library_winter";
             break;
         case 12:
             return "library_newyear";

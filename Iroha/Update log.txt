@@ -1,7 +1,14 @@
 VERSION 2.5.0.2
 
++ Improvements:
+  - Update to the built-in database
+	~ H. P. Lovecraft
+	~ Event & Taint data: Up to "Aka and Ao's Study on Alchemy ~Fourth Years~"
+	~ Remove references to event reruns
+
 + Bug fixes:
   - Grab banners for Special Directives event as "Research event"
+  - Correct seasonal VC naming
 
 =======================================================
 VERSION 2.5.0.1
