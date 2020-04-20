@@ -132,6 +132,9 @@ var writers = ["", "", "", ""];
 /** Writers' stats placeholder for blossoming checks */
 var writerKaika = new writerBlossoming(0, 0, 0, 0, 0, 0, 0, 0, 0);
 
+/** Subjugation delve hint per turn */
+var hintedCard = false;
+
 /* ----------------------- UI IMPLEMENTATION AND DISPLAYS -----------------------
  * 
  * + Listener to the browser's activities
@@ -140,7 +143,7 @@ var writerKaika = new writerBlossoming(0, 0, 0, 0, 0, 0, 0, 0, 0);
  *      - Login VC: login()
  *      - Office data: myRoom()
  *      - Other VCs from assistant: assistant(), voiceImmediate()
- *      - Tainted Book Delve: start(), battle(), battlePhase(), cardBattle(), result(), cardBattleResult()
+ *      - Tainted Book Delve: start(), battle(), battlePhase(), cardBattleInit(), cardBattle(), result(), cardBattleResult()
  *      - Ensouled Book Delve: ensouledDelveVoice(), ensouledTransmigratedVoice()
  *      - Blossoming: skillTree()
  *      - Dining Hall: supply()
@@ -212,13 +215,12 @@ function (request) {
                 else if (endpt[1].includes("costumes/")) {              /* Outfit lists */
                     request.getContent(costume);
                 }
-                else if (endpt[1].includes("stages/start/")) {          /* Tainted Book Delve start */
+                else if (endpt[1].includes("stages/start/")
+                    || endpt[1].includes("battle/start/")) {            /* Tainted Book Delve start */
                     request.getContent(start);
                 }
                 else if (endpt[1].includes("event/select_card_battle/")) {
-                    if (endpt[1].includes("start"))
-                        request.getContent(start);                      /* Subjugation delve start */
-                    else if (endpt[1].includes("init"))
+                    if (endpt[1].includes("init"))
                         request.getContent(cardBattleInit);             /* Subjugation delve initialising */                    
                     else if (endpt[1].includes("result"))
                         request.getContent(cardBattleResult);           /* Subjugation delve result */
@@ -344,6 +346,9 @@ function assistant(content) {
     /* Check for current banners */
     if (json.banner != null && json.banner.length != 0) {
         var bannerEventCounter = 0;
+        var bannerMemoriaCounter = 0;
+        var bannerPaidMemoriaCounter = 0;
+        var bannerCampaignCounter = 0;
         var bannerName;
         o += b("<i>Current banners:</i>")
 
@@ -352,13 +357,13 @@ function assistant(content) {
 
             switch (banner.url) {
                 case "yukonsho":
-                    bannerName = "Summoning campaign";
+                    bannerName = "Summoning campaign #" + ++bannerCampaignCounter;
                     break;
                 case "shousouChoice":
-                    bannerName = "Memoria feature";
+                    bannerName = "Memoria feature #" + ++bannerMemoriaCounter;
                     break;
                 case "shousouStepup":
-                    bannerName = "Paid memoria feature";
+                    bannerName = "Paid memoria feature #" + ++bannerPaidMemoriaCounter;
                     break;
                 case "kenkyu":
                     bannerName = "Research event";
@@ -553,7 +558,7 @@ function voiceImmediate(content) {
   * + Store the delving writers to a global array
   * + Display VCs from writers, all sprites and new materials from ring-equipped writers
   * @version 1.3.2
-  * @since October 6, 2019
+  * @since April 20, 2020
   * @param {*} content The content found in the requesting URL
   * @returns N/A
   */
@@ -768,26 +773,55 @@ function battlePhase(phaseContent) {
     return phase_data;
 }
 
+/** This function display delve boss, recollection (if found) and tainted card ID
+  * (if hinted) when a subjugation delve starts.
+  * @version 1.0
+  * @since April 20, 2020
+  * @param {any} content The content found in the requesting URL
+  */
 function cardBattleInit(content) {
     json = JSON.parse(content);
+
+    /* Reser card hinting */
+    hintedCard = false;
 
     /* Parse in any reco that plays at battle start */
     o += (json.adv == null || json.adv.length == 0) ? "" : recollection(json.adv[0]);
 
     /* Grab boss Taint's info */
-    o += b("Boss Taint:");
-    o += br(llink("http://cdn.bungo.dmmgames.com" + json.result.result.enemies[0].img_path, taintTranslate(json.result.result.enemies[0].name) + "(" + weaponTranslate(json.result.result.enemies[0].category) + ")") + ", hp: " + json.result.result.enemies[0].select_card_battle_hp + ", id: " + json.result.result.enemies[0].id);
+    o += "<b>Boss Taint:</b><br/>";
+    o += llink("http://cdn.bungo.dmmgames.com" + json.result.result.enemies[0].img_path, taintTranslate(json.result.result.enemies[0].name)) + " (" + weaponTranslate(json.result.result.enemies[0].category) + "), hp: " + json.result.result.enemies[0].select_card_battle_hp + ", id: " + json.result.result.enemies[0].id + "<br/><br/>";
+
+    /* Display tainted card # if found */
+    if (json.next.card_effect.enemy.length != 0 && !hintedCard) {
+        hintedCard = true;
+        o += "<b>Tainted card ID:</b>" + (++json.next.card_effect.enemy[0]) + "<br/>";
+    }
+
+    out.innerHTML = o;
 }
 
+/** This function display recollection (if found), tainted card ID (if hinted)
+  * and tainted card image (if picked) from a subjugation delve.
+  * @version 1.0
+  * @since April 20, 2020
+  * @param {any} content The content found in the requesting URL
+  */
 function cardBattle(content) {
     json = JSON.parse(content);
 
     /* Parse in any reco that plays after battle */
     o += (json.adv == null || json.adv.length == 0) ? "" : recollection(json.adv[0]);
 
+    /* Display tainted card # if found */
+    if (json.next.card_effect.enemy.length != 0 && !hintedCard) {
+        hintedCard = true; // Prevent repetition in next turns
+        o += b("<i>Tainted card ID: </i>") + (++json.next.card_effect.enemy[0]);
+    }
+
     /* Grab taint's memoria image if picked (i.e. failed run) */
     if (json.result.result_grade !== null && json.result.result_grade !== 1)
-        o += (json.result.card_image) ? ("<b>Taint's card image:</b> " + llink("http://cdn.bungo.dmmgames.com" + json.result.card_image, "link")) + "<br/>" : "";
+        o += (json.result.card_image) ? (b("<i>Taint's card image:</i>") + llink("http://cdn.bungo.dmmgames.com" + json.result.card_image, "link")) + "<br/>" : "";
 
     out.innerHTML = o;
 }
@@ -852,7 +886,6 @@ function result(content) {
 }
 
 /** This function displays the item drops as a reward from subjugation delves.
-  * + Print the drop/reward list with translated items' names (if available) and images (if from new events)
   * @version 1.0
   * @since April 20, 2020
   * @param {*} content The content found in the requesting URL
@@ -1948,8 +1981,8 @@ function diningRecos(recoContent) {
 
 /** This function collects the playing recollection's data and either display the content in Wikia codes (if of the older type)
   * or display the link to its .zip file (if of newer type implemented on November 2018).
-  * @version 2.1.3
-  * @since July 18, 2019
+  * @version 2.2
+  * @since April 20, 2020
   * @param {any} recoContent The JS section pertaining to the triggered recollection
   * @return {string} The recollection's available content
   */
@@ -1961,10 +1994,15 @@ function recollection(recoContent) {
     reco_data += b("Recollection Name: ") + ((recoContent.chapter_title) ? (recoContent.chapter_title + " ") : "") + recoContent.title;
 
     /* Newer recollection */
-    if (recoContent.contents == null || recoContent.contents == 0)
+    if ((recoContent.contents == null || recoContent.contents == 0) && (recoContent.adv.contents == null || recoContent.adv.contents == 0))
         /* Link to the reco file */
         reco_data += br(llink("http://cdn.bungo.dmmgames.com" + recoContent.novelPath, "Recollection text file (save as .zip then extract to .txt)"));
     else { /* Older recollection */
+
+        /* Devs stuffed some reco in one extra JSON layer, git gud devs */
+        if (recoContent.contents == null)
+            recoContent = recoContent.adv;
+
         /* Check for called VCs */
 
         /** Placeholder for all reco's VC links */
