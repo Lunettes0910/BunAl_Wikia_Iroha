@@ -140,7 +140,7 @@ var writerKaika = new writerBlossoming(0, 0, 0, 0, 0, 0, 0, 0, 0);
  *      - Login VC: login()
  *      - Office data: myRoom()
  *      - Other VCs from assistant: assistant(), voiceImmediate()
- *      - Tainted Book Delve: start(), cardBattleStart(), battle(), battlePhase(), cardBattle(), result(), cardBattleResult()
+ *      - Tainted Book Delve: start(), battle(), battlePhase(), cardBattle(), result(), cardBattleResult()
  *      - Ensouled Book Delve: ensouledDelveVoice(), ensouledTransmigratedVoice()
  *      - Blossoming: skillTree()
  *      - Dining Hall: supply()
@@ -217,7 +217,9 @@ function (request) {
                 }
                 else if (endpt[1].includes("event/select_card_battle/")) {
                     if (endpt[1].includes("start"))
-                        request.getContent(cardBattleStart);            /* Subjugation delve start */
+                        request.getContent(start);                      /* Subjugation delve start */
+                    else if (endpt[1].includes("init"))
+                        request.getContent(cardBattleInit);             /* Subjugation delve initialising */                    
                     else if (endpt[1].includes("result"))
                         request.getContent(cardBattleResult);           /* Subjugation delve result */
                     else
@@ -562,107 +564,109 @@ function start(content) {
         return;
 
     /* Tainted Book's name */
-    o += "<hr/><b>Tainted Book:<br/><i>" + bookTranslate(json.stage.name) + "</i></b><br/><br/>";
+    o += "<hr/><b>Tainted Book:<br/><i>" + ((json.stage.event_id == null) ? bookTranslate(json.stage.name) : json.stage.name) + "</i></b><br/><br/>";
 
     /* Grab the goddamn recollection if found */
     o += (json.adv == null || json.adv.length == 0) ? "" : (recollection(json.adv[0]) + "<br/><br/>");
 
-    /** A placeholder for parsing the writer's name to the images */
-    var writer_name = "";
+    if (json.stage.event_id == null) {
+        /** A placeholder for parsing the writer's name to the images */
+        var writer_name = "";
 
-    /** An order counter to store the writers' names to other functions (thanks devs) */
-    var writer_order = 1;
+        /** An order counter to store the writers' names to other functions (thanks devs) */
+        var writer_order = 1;
 
-    /* A variable checking if each writer is equipped with ring */
-    var ring_writer;
+        /* A variable checking if each writer is equipped with ring */
+        var ring_writer;
 
-    /* Counter variable for each writer's VCs */
-    var vc_counter = 0;
+        /* Counter variable for each writer's VCs */
+        var vc_counter = 0;
 
-    for (var unit of json.deck.units) {
-        /* Check if the slot is empty */
-        if (unit == null)
-            continue;
+        for (var unit of json.deck.units) {
+            /* Check if the slot is empty */
+            if (unit == null)
+                continue;
 
-        writer_name = nameTranslate(unit.master.name);
+            writer_name = nameTranslate(unit.master.name);
 
-        /* Display all VCs from new writers & only ring & hidden VCs from known writers */
-//      if (unit.master.name !== writer_name) {
-//          /* Ring writers have one extra VC */
-//          if (unit.voices.length > DELVE_DEFAULT_VC_COUNT) {
-//              o += p(unit.mst_unit_id + " " + writer_name + " (" + weaponTranslate(unit.category) + ")");
-//              writer_name = writer_name.replace(/ /g, "_");
-//
-//              o += b("Writer sprites: ");
-//              o += br(llink("http://cdn.bungo.dmmgames.com" + unit.images[1].path, writer_name + "_bookdelve_(ring).png"));
-//              o += br(llink("http://cdn.bungo.dmmgames.com" + unit.icons[3].path, writer_name + "_bookdelve_(ring)_prev.png"));
-//
-//              o += b("Battle VCs: ");
-//              o += br(llink("http://cdn.bungo.dmmgames.com" + unit.voices[DELVE_DEFAULT_VC_COUNT].path, writer_name + "_tainted_attackring"));
-//
-//          } else { /* Default heading for known writers with default weapon */
-//              o += p(unit.mst_unit_id + " " + writer_name);
-//              writer_name = writer_name.replace(/ /g, "_");
-//          }
-//
-//          /* Grabs hidden VCs for all known writers */
-//          o += b("Hidden VCs: ");
-//          for (var item of unit.voices)
-//              if (item.asset_no === DELVE_HIDDEN_VC_ID_1 || item.asset_no === DELVE_HIDDEN_VC_ID_2)
-//                  o += br(llink("http://cdn.bungo.dmmgames.com" + item.path, convertVoiceNum(item.asset_no)));
-//
-//      } else {
-//          o += p(unit.mst_unit_id + " " + writer_name);
-//          writer_name = writer_name.replace(/ /g, "_");
-//
-//          o += b("Writer sprites: ");
-//          o += br(llink("http://cdn.bungo.dmmgames.com" + unit.images[0].path, writer_name + "_normal.png"));
-//          o += br(llink("http://cdn.bungo.dmmgames.com" + unit.images[1].path, writer_name + "_bookdelve.png"));
-//          o += br(llink("http://cdn.bungo.dmmgames.com" + unit.images[2].path, writer_name + "_weakened.png"));
-//          o += b("Battle VCs: ");
-//          for (var item of unit.voices)
-//              o += br(llink("http://cdn.bungo.dmmgames.com" + item.path, convertVoiceNum(item.asset_no)));
-//      }
+            /* Display all VCs from new writers & only ring & hidden VCs from known writers */
+            //      if (unit.master.name !== writer_name) {
+            //          /* Ring writers have one extra VC */
+            //          if (unit.voices.length > DELVE_DEFAULT_VC_COUNT) {
+            //              o += p(unit.mst_unit_id + " " + writer_name + " (" + weaponTranslate(unit.category) + ")");
+            //              writer_name = writer_name.replace(/ /g, "_");
+            //
+            //              o += b("Writer sprites: ");
+            //              o += br(llink("http://cdn.bungo.dmmgames.com" + unit.images[1].path, writer_name + "_bookdelve_(ring).png"));
+            //              o += br(llink("http://cdn.bungo.dmmgames.com" + unit.icons[3].path, writer_name + "_bookdelve_(ring)_prev.png"));
+            //
+            //              o += b("Battle VCs: ");
+            //              o += br(llink("http://cdn.bungo.dmmgames.com" + unit.voices[DELVE_DEFAULT_VC_COUNT].path, writer_name + "_tainted_attackring"));
+            //
+            //          } else { /* Default heading for known writers with default weapon */
+            //              o += p(unit.mst_unit_id + " " + writer_name);
+            //              writer_name = writer_name.replace(/ /g, "_");
+            //          }
+            //
+            //          /* Grabs hidden VCs for all known writers */
+            //          o += b("Hidden VCs: ");
+            //          for (var item of unit.voices)
+            //              if (item.asset_no === DELVE_HIDDEN_VC_ID_1 || item.asset_no === DELVE_HIDDEN_VC_ID_2)
+            //                  o += br(llink("http://cdn.bungo.dmmgames.com" + item.path, convertVoiceNum(item.asset_no)));
+            //
+            //      } else {
+            //          o += p(unit.mst_unit_id + " " + writer_name);
+            //          writer_name = writer_name.replace(/ /g, "_");
+            //
+            //          o += b("Writer sprites: ");
+            //          o += br(llink("http://cdn.bungo.dmmgames.com" + unit.images[0].path, writer_name + "_normal.png"));
+            //          o += br(llink("http://cdn.bungo.dmmgames.com" + unit.images[1].path, writer_name + "_bookdelve.png"));
+            //          o += br(llink("http://cdn.bungo.dmmgames.com" + unit.images[2].path, writer_name + "_weakened.png"));
+            //          o += b("Battle VCs: ");
+            //          for (var item of unit.voices)
+            //              o += br(llink("http://cdn.bungo.dmmgames.com" + item.path, convertVoiceNum(item.asset_no)));
+            //      }
 
-        /* Display all VCs (delve, ring if possible, hidden) from all writers */
-        ring_writer = unit.voices.length > DELVE_DEFAULT_VC_COUNT;
+            /* Display all VCs (delve, ring if possible, hidden) from all writers */
+            ring_writer = unit.voices.length > DELVE_DEFAULT_VC_COUNT;
 
-        o += p(unit.mst_unit_id + " " + writer_name + ((ring_writer) ? " (" + weaponTranslate(unit.category) + ")" : ""));
-        writer_name = writer_name.replace(/ /g, "_");
+            o += p(unit.mst_unit_id + " " + writer_name + ((ring_writer) ? " (" + weaponTranslate(unit.category) + ")" : ""));
+            writer_name = writer_name.replace(/ /g, "_");
 
-        o += b("Writer sprites: ");
-        o += br(llink("http://cdn.bungo.dmmgames.com" + unit.images[0].path, writer_name + "_normal.png"));
-        o += br(llink("http://cdn.bungo.dmmgames.com" + unit.images[1].path, writer_name + ((ring_writer) ? "_bookdelve_(ring).png" : "_bookdelve.png")));
-        o += br(llink("http://cdn.bungo.dmmgames.com" + unit.images[2].path, writer_name + "_weakened.png"));
-        if (ring_writer)
-            o += br(llink("http://cdn.bungo.dmmgames.com" + unit.icons[3].path, writer_name + "_bookdelve_(ring)_prev.png"));
+            o += b("Writer sprites: ");
+            o += br(llink("http://cdn.bungo.dmmgames.com" + unit.images[0].path, writer_name + "_normal.png"));
+            o += br(llink("http://cdn.bungo.dmmgames.com" + unit.images[1].path, writer_name + ((ring_writer) ? "_bookdelve_(ring).png" : "_bookdelve.png")));
+            o += br(llink("http://cdn.bungo.dmmgames.com" + unit.images[2].path, writer_name + "_weakened.png"));
+            if (ring_writer)
+                o += br(llink("http://cdn.bungo.dmmgames.com" + unit.icons[3].path, writer_name + "_bookdelve_(ring)_prev.png"));
 
-        /* Reset the VC counter */
-        vc_counter = 0;
+            /* Reset the VC counter */
+            vc_counter = 0;
 
-        o += b("Battle VCs: ");
+            o += b("Battle VCs: ");
 
-        for (vc_counter = 0; vc_counter <= DELVE_DEFAULT_VC_COUNT; vc_counter++) {           
-            if (vc_counter == DELVE_DEFAULT_VC_COUNT)
-                o += (ring_writer) ? br(llink("http://cdn.bungo.dmmgames.com" + unit.voices[vc_counter].path, writer_name + "_tainted_attackring")) : "";
-            else {
-                if (unit.voices[vc_counter].asset_no === DELVE_HIDDEN_VC_ID_1 || unit.voices[vc_counter].asset_no === DELVE_HIDDEN_VC_ID_2)
-                    continue;
+            for (vc_counter = 0; vc_counter <= DELVE_DEFAULT_VC_COUNT; vc_counter++) {
+                if (vc_counter == DELVE_DEFAULT_VC_COUNT)
+                    o += (ring_writer) ? br(llink("http://cdn.bungo.dmmgames.com" + unit.voices[vc_counter].path, writer_name + "_tainted_attackring")) : "";
+                else {
+                    if (unit.voices[vc_counter].asset_no === DELVE_HIDDEN_VC_ID_1 || unit.voices[vc_counter].asset_no === DELVE_HIDDEN_VC_ID_2)
+                        continue;
 
-                o += br(llink("http://cdn.bungo.dmmgames.com" + unit.voices[vc_counter].path, writer_name + "_" + convertVoiceNum(unit.voices[vc_counter].asset_no)));
+                    o += br(llink("http://cdn.bungo.dmmgames.com" + unit.voices[vc_counter].path, writer_name + "_" + convertVoiceNum(unit.voices[vc_counter].asset_no)));
+                }
             }
+
+            /* Grabs hidden VCs for all known writers */
+            o += b("Hidden VCs: ");
+            for (var item of unit.voices)
+                if (item.asset_no === DELVE_HIDDEN_VC_ID_1 || item.asset_no === DELVE_HIDDEN_VC_ID_2)
+                    o += br(llink("http://cdn.bungo.dmmgames.com" + item.path, convertVoiceNum(item.asset_no)));
+
+            /* Store their ID to other book delve functions */
+            writers[writer_order++] = unit.mst_unit_id;
+
+            o += "<hr style='width:50%; margin:15px auto 15px auto;'>";
         }
-
-        /* Grabs hidden VCs for all known writers */
-        o += b("Hidden VCs: ");
-        for (var item of unit.voices)
-            if (item.asset_no === DELVE_HIDDEN_VC_ID_1 || item.asset_no === DELVE_HIDDEN_VC_ID_2)
-                o += br(llink("http://cdn.bungo.dmmgames.com" + item.path, convertVoiceNum(item.asset_no)));
-
-        /* Store their ID to other book delve functions */
-        writers[writer_order++] = unit.mst_unit_id;
-
-        o += "<hr style='width:50%; margin:15px auto 15px auto;'>";
     }
 
     out.innerHTML = o;
@@ -764,16 +768,26 @@ function battlePhase(phaseContent) {
     return phase_data;
 }
 
+function cardBattleInit(content) {
+    json = JSON.parse(content);
+
+    /* Parse in any reco that plays at battle start */
+    o += (json.adv == null || json.adv.length == 0) ? "" : recollection(json.adv[0]);
+
+    /* Grab boss Taint's info */
+    o += b("Boss Taint:");
+    o += br(llink("http://cdn.bungo.dmmgames.com" + json.result.result.enemies[0].img_path, taintTranslate(json.result.result.enemies[0].name) + "(" + weaponTranslate(json.result.result.enemies[0].category) + ")") + ", hp: " + json.result.result.enemies[0].select_card_battle_hp + ", id: " + json.result.result.enemies[0].id);
+}
+
 function cardBattle(content) {
     json = JSON.parse(content);
 
     /* Parse in any reco that plays after battle */
     o += (json.adv == null || json.adv.length == 0) ? "" : recollection(json.adv[0]);
 
-    /* Each turn's result + ft. memoria image */
-    if (json.result.battle) {
-        o += (json.result.card_image) ? ("<b>Card image:</b> " + llink("http://cdn.bungo.dmmgames.com" + json.result.card_image, "link")) + "<br/>" : "";
-    }
+    /* Grab taint's memoria image if picked (i.e. failed run) */
+    if (json.result.result_grade !== null && json.result.result_grade !== 1)
+        o += (json.result.card_image) ? ("<b>Taint's card image:</b> " + llink("http://cdn.bungo.dmmgames.com" + json.result.card_image, "link")) + "<br/>" : "";
 
     out.innerHTML = o;
 }
@@ -2737,6 +2751,11 @@ function isBoss(jpName) {
         /* Sengoku Basara collab boss */
         case "狂乱ノ将":
             return "General of Madness";
+            break;
+
+        /* "Run, Melos" boss */
+        case "邪智暴虐ノ王":
+            return "King of Cunning Tyranny";
             break;
 
         default:
