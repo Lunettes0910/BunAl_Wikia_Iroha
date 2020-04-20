@@ -110,7 +110,9 @@ const eventNames = ["", "Purify &quot;The Five-Storied Pagoda&quot;", "An Encour
     "Ensouled Book Research - Satomi Ton", "Chronicles of Galactic Railroad II", "Accomplish the Special Directive",
     "", "Co-Research with Chief Librarian ~Part Fifteen~", "Purify &quot;The Fall of the House of Usher&quot;",
     "Research on Edgar Allan Poe", "", "Accomplish the Special Directives 2",
-    "Aka and Ao&apos;s Study on Alchemy ~Fourth Years~"
+    "Aka and Ao&apos;s Study on Alchemy ~Fourth Years~", "", "",
+    "Explore the Underground Maze", "", "Co-Research with Chief Librarian ~Part Sixteen~",
+    "Purify &quot;Run, Melos&quot;"
 ];
 
 /** Count of known events */
@@ -138,7 +140,7 @@ var writerKaika = new writerBlossoming(0, 0, 0, 0, 0, 0, 0, 0, 0);
  *      - Login VC: login()
  *      - Office data: myRoom()
  *      - Other VCs from assistant: assistant(), voiceImmediate()
- *      - Tainted Book Delve: start(), battle(), battlePhase(), result()
+ *      - Tainted Book Delve: start(), cardBattleStart(), battle(), battlePhase(), cardBattle(), result(), cardBattleResult()
  *      - Ensouled Book Delve: ensouledDelveVoice(), ensouledTransmigratedVoice()
  *      - Blossoming: skillTree()
  *      - Dining Hall: supply()
@@ -212,6 +214,14 @@ function (request) {
                 }
                 else if (endpt[1].includes("stages/start/")) {          /* Tainted Book Delve start */
                     request.getContent(start);
+                }
+                else if (endpt[1].includes("event/select_card_battle/")) {
+                    if (endpt[1].includes("start"))
+                        request.getContent(cardBattleStart);            /* Subjugation delve start */
+                    else if (endpt[1].includes("result"))
+                        request.getContent(cardBattleResult);           /* Subjugation delve result */
+                    else
+                        request.getContent(cardBattle);                 /* Subjugation delve turn */
                 }
                 else if (endpt[1].includes("workspaces")) {
                     if (endpt[1].includes("page/"))
@@ -302,7 +312,7 @@ function login(content) {
   * + Display the autoplaying recollection if detected
   * + Display the assistant's info and all VCs found
   * 
-  * @version 2.1
+  * @version 2.1.1
   * @since January 22, 2020
   * @param {*} content The content found in the requesting URL
   * @returns N/A
@@ -344,6 +354,9 @@ function assistant(content) {
                     break;
                 case "shousouChoice":
                     bannerName = "Memoria feature";
+                    break;
+                case "shousouStepup":
+                    bannerName = "Paid memoria feature";
                     break;
                 case "kenkyu":
                     bannerName = "Research event";
@@ -751,6 +764,20 @@ function battlePhase(phaseContent) {
     return phase_data;
 }
 
+function cardBattle(content) {
+    json = JSON.parse(content);
+
+    /* Parse in any reco that plays after battle */
+    o += (json.adv == null || json.adv.length == 0) ? "" : recollection(json.adv[0]);
+
+    /* Each turn's result + ft. memoria image */
+    if (json.result.battle) {
+        o += (json.result.card_image) ? ("<b>Card image:</b> " + llink("http://cdn.bungo.dmmgames.com" + json.result.card_image, "link")) + "<br/>" : "";
+    }
+
+    out.innerHTML = o;
+}
+
 /** This function displays the item drops as a reward from the delve.
   * + Print the hints if available
   * + Print the drop/reward list with translated items' names (if available) and images (if from new events)
@@ -796,6 +823,38 @@ function result(content) {
             o += "<br/><b><i>First cleared bonus:</i></b> ";
             o += json.event.point.first_cleared_point + " " + event_item_tl_name;
         }
+
+        /* Display event item images if it is new event or rerun (to be improved later) */
+        if (json.stage.event_id > EVENT_COUNT && event_item_tl_name == event_item_name[0]) {
+            var defaultItemLink = "http://cdn.bungo.dmmgames.com" + json.event.point.path;
+            o += "<br/>" + llink(defaultItemLink.replace("03", "01"), "Item image");
+            o += "<br/>" + llink(defaultItemLink.replace("03", "02"), "Item shop icon");
+            o += "<br/>" + llink(defaultItemLink, "Item icon");
+        }
+    }
+
+    o += "<hr/>";
+    out.innerHTML = o;
+}
+
+/** This function displays the item drops as a reward from subjugation delves.
+  * + Print the drop/reward list with translated items' names (if available) and images (if from new events)
+  * @version 1.0
+  * @since April 20, 2020
+  * @param {*} content The content found in the requesting URL
+  * @returns N/A
+  */
+function cardBattleResult(content) {
+    json = JSON.parse(content);
+
+    /* Check for event points */
+    if (json.event != null) {
+        /* A placeholder for the event point's translated name */
+        var event_item_name = json.event.point.name.split("-");
+        event_item_tl_name = eventItemTranslate(event_item_name[0]);
+
+        o += b("<i>Event point:</i> ");
+        o += json.event.point.sum_point + " " + event_item_tl_name;
 
         /* Display event item images if it is new event or rerun (to be improved later) */
         if (json.stage.event_id > EVENT_COUNT && event_item_tl_name == event_item_name[0]) {
@@ -2208,6 +2267,10 @@ function nameTranslate(name) {
         case 58:
             return "Yoshii Isamu";
             break;
+        case "山田美妙":
+        case 61:
+            return "Yamada Bimyou";
+            break;
         case "草野心平":
         case 66:
             return "Kusano Shinpei";
@@ -3011,7 +3074,7 @@ function weaponTranslate(jpName) {
 /** This function converts the name of an event item point into English.
   * + Translate the item's name into English if it is one of the event points listed
   * in the function.
-  * @version 1.1.3
+  * @version 1.1.4
   * @since January 22, 2020 (100 People rerun)
   * @param {string} jpName The item's Japanese name
   * @returns {string} The item's translated name (if found), or its Japanese name unchanged
@@ -3067,6 +3130,11 @@ function eventItemTranslate(jpName) {
         /* Repair the Grimoire of Fate */
         case "術書のかけら":
             return "Grimoire Tatters";
+            break;
+
+        /* Subjugation events */
+        case "言の葉":
+            return "Words";
             break;
 
         /* Summer Daydream */

@@ -13,6 +13,7 @@
 
 ## About
 * ***Latest released version:*** 2.5.0.2
+* ***Testing version:*** 2.5.1
 
 This project is a small extension used to collect materials and data from the Japanese browser game *Bungo to Alchemist* (lit. *Writers and Alchemists*). The plugin was written to support the maintenance and update of [the game's Wikia](https://bungo.fandom.com) and has been passed down among the Wikia's staff.
 
