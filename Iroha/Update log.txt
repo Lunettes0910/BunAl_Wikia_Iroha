@@ -1,6 +1,14 @@
 VERSION 2.5.1
 
 + New features & improvements:
+  - Update to the buit-in database:
+	~ Saitou Mokichi
+	~ Event & Taint data: Up to "Purify "Under the Blossoming Cherry Trees"
+
+=======================================================
+VERSION 2.5.1
+
++ New features & improvements:
   - Displays result, recollections and taint "memoria" from Subjugation-typed delves
   - Collect anniversary recollections playable from the Library
   - Update to the built-in database

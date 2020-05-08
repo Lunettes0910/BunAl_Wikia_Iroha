@@ -112,7 +112,7 @@ const eventNames = ["", "Purify &quot;The Five-Storied Pagoda&quot;", "An Encour
     "Research on Edgar Allan Poe", "", "Accomplish the Special Directives 2",
     "Aka and Ao&apos;s Study on Alchemy ~Fourth Years~", "", "",
     "Explore the Underground Maze", "", "Co-Research with Chief Librarian ~Part Sixteen~",
-    "Purify &quot;Run, Melos&quot;"
+    "Purify &quot;Run, Melos&quot;", "Purify &quot;Under the Blossoming Cherry Trees&quot;"
 ];
 
 /** Count of known events */
@@ -328,8 +328,8 @@ function assistant(content) {
         return;
 
     /* Check for autoplaying recollections */
-    if (json.adv != null && json.adv != 0)
-        o += delveRecos(json.adv[0]);
+    if (json.adv != null && json.adv.length !== 0)
+        o += recollection(json.adv[0]);
 
     /* Get all VCs from the assistant */
     o += headerVoice(json.header);
@@ -2323,6 +2323,10 @@ function nameTranslate(name) {
         case 61:
             return "Yamada Bimyou";
             break;
+        case "斎藤茂吉":
+        case 65:
+            return "Saitou Mokichi";
+            break;    
         case "草野心平":
         case 66:
             return "Kusano Shinpei";
@@ -2370,9 +2374,6 @@ function nameTranslate(name) {
             break;
         case "三島由紀夫":
             return "Mishima Yukio";
-            break;
-        case "斎藤茂吉":
-            return "Saitou Mokichi";
             break;
         case "徳富蘇峰":
             return "Tokutomi Sohou";
@@ -2791,9 +2792,13 @@ function isBoss(jpName) {
             return "General of Madness";
             break;
 
-        /* "Run, Melos" boss */
+        /* Anime event bosses */
         case "邪智暴虐ノ王":
             return "King of Cunning Tyranny";
+            break;
+
+        case "花片ノ魑魅":
+            return "Mountain Demon of Flower Petals";
             break;
 
         default:
